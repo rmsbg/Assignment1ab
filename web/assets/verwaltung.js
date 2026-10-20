@@ -88,6 +88,10 @@
    }
   } catch(error) {if(own!==generation)return;content.innerHTML='<p id="form-error" role="alert" tabindex="-1"></p><a href="#">Zur Übersicht</a>';showErrors(error);}
  }
- window.addEventListener('hashchange',()=>{notice(savedNotice ? `${label} gespeichert.` : '');savedNotice=false;render();});
+ window.addEventListener('hashchange',()=>{
+  notice(savedNotice ? `${label} gespeichert.` : '');savedNotice=false;
+  const expected=generation+1;
+  render().then(()=>{if(generation!==expected)return;const heading=content.querySelector('h2');if(heading){heading.tabIndex=-1;heading.focus();}});
+ });
  render();
 })();

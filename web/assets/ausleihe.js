@@ -49,7 +49,7 @@
     personSelect.value=people.some(p=>p.id===preferredPerson)?preferredPerson:'';
     if(preferredPerson && !people.some(p=>p.id===preferredPerson))showErrors({errors:{personID:'Die vorausgewählte Person wurde nicht gefunden. Bitte eine vorhandene Person auswählen.'}});
    }
-   document.querySelector('#refresh-rentals').addEventListener('click',()=>{notice('');render(personSelect?.value||'');});
+   document.querySelector('#refresh-rentals').addEventListener('click',()=>{notice('');render(personSelect?.value||'').then(focusHeading);});
    document.querySelector('#rental-form')?.addEventListener('submit',async event=>{
     event.preventDefault();
     const form=event.currentTarget,button=form.querySelector('button[type="submit"]');
@@ -59,16 +59,13 @@
      await request('/api/ausleihen',{method:'POST',headers:{'Content-Type':'application/json'},body});
      if(own!==generation)return;
      notice('Ausleihe gespeichert. Das Ski-Paar ist jetzt ausgeliehen.');await render(personSelect.value);
+     if(generation===own+1)message.focus();
     } catch(error) {
      if(own!==generation)return;
      showErrors(error);button.disabled=false;
      if(error.status===409||error.status===404) {
-      try {
-       const available=await request('/api/ski/verfuegbar');if(own!==generation)return;
-       document.querySelector('#skiID').innerHTML=skiOptions(available);
-       document.querySelector('#no-skis').hidden=available.length>0;
-       button.disabled=!people.length||!available.length;
-      } catch { /* Keep the original error and allow a manual refresh. */ }
+      await render(personSelect.value);
+      if(generation===own+1)showErrors(error);
      }
     }
    });
@@ -78,6 +75,7 @@
      await request('/api/ausleihen/'+encodeURIComponent(button.dataset.return)+'/rueckgabe',{method:'PUT'});
      if(own!==generation)return;
      notice('Rückgabe gespeichert.');await render(personSelect?.value||'');
+     if(generation===own+1)message.focus();
     }catch(error){if(own!==generation)return;showErrors(error);button.disabled=false;}
    }));
   } catch(error) {
@@ -86,6 +84,7 @@
    showErrors(error);document.querySelector('#retry-rentals').addEventListener('click',()=>render(preferredPerson));
   }
  }
- window.addEventListener('hashchange',()=>{notice('');render();});
+ function focusHeading(){const heading=content.querySelector('h2');if(heading){heading.tabIndex=-1;heading.focus();}}
+ window.addEventListener('hashchange',()=>{notice('');const expected=generation+1;render().then(()=>{if(generation===expected)focusHeading();});});
  render();
 })();

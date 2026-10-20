@@ -25,6 +25,7 @@ type pageData struct {
 	Pages     []page
 	Demo      bool
 	Dashboard bool
+	Counts    store.DashboardCounts
 }
 
 func New(state *store.Store) (http.Handler, error) {
@@ -45,6 +46,13 @@ func New(state *store.Store) (http.Handler, error) {
 	mux := http.NewServeMux()
 	registerAPI(mux, state)
 	registerRentals(mux, state)
+	mux.HandleFunc("GET /api/dashboard", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodHead {
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			return
+		}
+		writeJSON(w, http.StatusOK, state.Dashboard())
+	})
 	for _, current := range pages {
 		pattern := "GET " + current.Path
 		if current.Path == "/" {
@@ -52,6 +60,9 @@ func New(state *store.Store) (http.Handler, error) {
 		}
 		mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 			data := pageData{Current: current, Pages: pages, Demo: state.IsDemo(), Dashboard: current.Path == "/"}
+			if data.Dashboard {
+				data.Counts = state.Dashboard()
+			}
 			var body bytes.Buffer
 			if err := tmpl.Execute(&body, data); err != nil {
 				log.Printf("Oberfläche rendern: %v", err)

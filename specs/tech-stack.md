@@ -24,7 +24,7 @@ einer dauerhaften Installation für spätere Entwicklung.
 
 ## Projektstruktur
 
-Die Phasen 0 bis 2 verwenden die folgende Struktur:
+Die Phasen 0 bis 3 verwenden die folgende Struktur:
 
 ```text
 cmd/server/         Einstieg, Konfiguration und HTTP-Server
@@ -51,11 +51,12 @@ und der gewählte Startzustand wiederhergestellt.
 
 Vier Ansichten bieten Dashboard, Ski verwalten, Personen verwalten und Neue
 Ausleihe. Phase 1 implementiert Anlegen, Listen, Details und Bearbeiten für Ski
-und Personen. Phase 2 ergänzt Ausleihe, Rückgabe und Verlauf; nur Dashboard-Zahlen
-bleiben Platzhalter. Speicherhinweise
+und Personen. Phase 2 ergänzt Ausleihe, Rückgabe und Verlauf; Phase 3 ergänzt
+konsistente Dashboard-Kennzahlen mit automatischer Aktualisierung. Speicherhinweise
 und Demokennzeichnung sind auf allen Seiten sichtbar. Die Verwaltung liegt in
 `web/assets/verwaltung.js`, Ausleihen in `web/assets/ausleihe.js`; Details und
-Formulare werden im Browser aufgebaut.
+Formulare werden im Browser aufgebaut. `web/assets/dashboard.js` aktualisiert
+die vom Server bereits gerenderten Kennzahlen.
 
 ## Verwaltungs-API (Phase 1)
 
@@ -91,8 +92,26 @@ werden jeweils unter einer Lesesperre ermittelt; Ergebniswerte sind unabhängige
 Kopien. Unbekannte Referenzen liefern 404, belegte Paare 409. Request-Felder und
 Zeitpunkte sind strikt begrenzt; JSON-Requests maximal 64 KiB. Auswahl und Liste
 werden nach erfolgreichen Aktionen neu geladen, veraltete Ski-Auswahl nach einem
-Konflikt aktualisiert. Andere Tabs verwenden „Aktualisieren“; kein Push-Mechanismus.
+Konflikt einschließlich Ausleihübersicht aktualisiert. Andere Tabs verwenden „Aktualisieren“; kein Push-Mechanismus.
 Details und Fehlercodes: [02-ausleihe.md](02-ausleihe.md).
+
+## Dashboard (Phase 3)
+
+`GET /api/dashboard` liefert ausschließlich vier Ganzzahlen: `availableSkis`,
+`rentedSkis`, `totalSkis`, `registeredPeople`. Der Store berechnet sie gemeinsam
+unter einer Lesesperre aus Ski, Personen und unterschiedlichen aktiv verliehenen
+Ski-IDs. Keine Personen- oder Bilddaten werden dafür kopiert oder ausgeliefert.
+HEAD liefert dieselben Schutz-/Typheader ohne Antwortbody; andere Methoden 405.
+
+SSR liefert beim Öffnen gültige Zahlen. Das Frontend fragt unmittelbar, alle
+5 Sekunden nach der letzten abgeschlossenen Anfrage und bei Tab-/Fensterrückkehr
+neu ab. Jeweils nur eine Anfrage, Timeout 5 Sekunden, Pause in verborgenen Tabs.
+`pagehide` bricht ab; `pageshow` startet auch nach Browsercache-Rückkehr neu.
+Antworten werden vor der Anzeige auf Ganzzahlen, Nichtnegativität und konsistente
+Summe geprüft. Bei Fehlern bleiben letzte Werte mit Veraltet-Hinweis erhalten;
+Intervall und manueller Button ermöglichen Erholung. Ohne JavaScript gilt der
+SSR-Stand. Das Dashboard verwendet ebenso `no-store` und `nosniff`.
+Details: [03-dashboard.md](03-dashboard.md).
 
 ## Daten und Konsistenz
 

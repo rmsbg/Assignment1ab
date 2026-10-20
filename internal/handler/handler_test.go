@@ -44,8 +44,8 @@ func TestPagesInBothModes(t *testing.T) {
 						t.Errorf("page exposed customer data: %s", private)
 					}
 				}
-				if path == "/" && strings.Count(body, `aria-label="Noch nicht verfügbar">—`) != 4 {
-					t.Error("dashboard must display four unavailable metrics, not numeric values")
+				if path == "/" && strings.Count(body, `data-metric=`) != 4 {
+					t.Error("dashboard must display four real metrics")
 				}
 				if path == "/ausleihe" && !strings.Contains(body, `id="ausleihe"`) {
 					t.Error("rental interface missing")

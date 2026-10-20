@@ -5,9 +5,11 @@
 Phase 0 ist vom Auftraggeber abgenommen; siehe dessen Bestätigung, auf die der
 Phase-1-Implementierungsauftrag vom 20.10.2026 verweist. Phase 1 ist implementiert,
 geprüft und am 20.10.2026 ausdrücklich vom Auftraggeber abgenommen. Phase 2 ist implementiert, geprüft
-und am 21.10.2026 ausdrücklich vom Auftraggeber abgenommen. Die Phasen 3 und 4 sind offen. Details und
-Prüfnachweise stehen in [00-projektgeruest.md](00-projektgeruest.md) und
-[01-verwaltung.md](01-verwaltung.md) sowie [02-ausleihe.md](02-ausleihe.md). Diese Roadmap
+und am 21.10.2026 ausdrücklich vom Auftraggeber abgenommen. Phase 3 ist implementiert, geprüft
+und am 21.10.2026 ausdrücklich vom Auftraggeber abgenommen. Phase 4 ist offen. Details und
+Prüfnachweise stehen in [00-projektgeruest.md](00-projektgeruest.md),
+[01-verwaltung.md](01-verwaltung.md), [02-ausleihe.md](02-ausleihe.md) und
+[03-dashboard.md](03-dashboard.md). Diese Roadmap
 ordnet Arbeit nach Abhängigkeiten; sie enthält keine zugesagten Termine.
 
 Für jede Phase gilt: **Spezifizieren → Aufgaben ableiten → Implementieren →
@@ -19,7 +21,8 @@ Die drei Verfassungsdateien bleiben die gemeinsame Grundlage.
 Ab sofort folgt auf jede ausdrücklich bestätigte Auftraggeberabnahme ein lokaler
 Git-Commit mit verständlicher Benennung von Phase und Ergebnis. Vor dem Commit
 werden Abnahmestatus und Prüfnachweis aktualisiert. Phase 1 ist mit
-`98354ce` (`Phase 1: Personen- und Skiverwaltung abschließen`) gesichert.
+`98354ce` (`Phase 1: Personen- und Skiverwaltung abschließen`) gesichert, Phase 2
+mit `237dc0a` (`Phase 2: Ausleihe und Rückgabe abschließen`).
 
 ## Phase 0 – Fachliche Entscheidungen und Projektgerüst
 
@@ -94,6 +97,10 @@ beendet die Ausleihe (M-02 und ergänzende MVP-Regeln).
   die relevanten Tests mit `go test -race ./...`.
 
 ## Phase 3 – Dashboard und durchgängige Bedienung
+
+**Status:** Implementiert, geprüft und vom Auftraggeber am 21.10.2026 abgenommen.
+Bestätigung im Projektgespräch: „phase 3 abgenommen“.
+Spezifikation, Schnittstellen und Prüfnachweis: [03-dashboard.md](03-dashboard.md).
 
 **Ergebnis:** Die Startseite zeigt die vier Kennzahlen und die drei
 Schnellzugriffe aus M-03 und M-04.

@@ -6,7 +6,8 @@ Phase 0 und Phase 1 sind vom Auftraggeber abgenommen. Phase 1 umfasst:
 Personen und Ski-Paare können angelegt, aufgelistet, einzeln angezeigt und
 bearbeitet werden. Die Abnahme erfolgte am 20.10.2026. Phase 2 ist implementiert,
 geprüft und am 21.10.2026 vom Auftraggeber abgenommen: Ausleihen und Rückgaben
-sind möglich. Echte Dashboard-Kennzahlen folgen in Phase 3.
+sind möglich. Phase 3 ist implementiert, geprüft und am 21.10.2026 vom Auftraggeber
+abgenommen. Das Dashboard zeigt echte Kennzahlen und aktualisiert sich automatisch.
 
 ### Voraussetzungen und Start
 
@@ -47,7 +48,9 @@ Loopback-Adresse; es gibt noch keine Benutzerkonten.
   Demodaten auf; der Modus wird sichtbar angezeigt.
 - Alle Änderungen gehen beim Neustart verloren. Danach entsteht erneut der
   gewählte leere oder Demo-Startzustand.
-- Kennzahlen sind ausdrücklich Platzhalter (`—`), keine aktuellen Bestandswerte.
+- Das Dashboard zählt Ski-Paare und Personen aus dem aktuellen Store.
+- Kennzahlen aktualisieren sich automatisch alle 5 Sekunden sowie bei Rückkehr
+  zum Dashboard-Tab. Bei Fehlern bleibt der letzte Stand als veraltet markiert.
 - Nur synthetische Kundendaten verwenden; kein produktiver Betrieb.
 
 ### Entwicklung und Prüfung
@@ -68,7 +71,8 @@ Nach Änderungen an eingebetteten Dateien den Server neu starten.
 Die Verfassung liegt unter `specs/`; Details und Prüfnachweis zu Phase 0 stehen
 in [specs/00-projektgeruest.md](specs/00-projektgeruest.md); Phase 1 ist in
 [specs/01-verwaltung.md](specs/01-verwaltung.md) beschrieben. Phase 2 steht in
-[specs/02-ausleihe.md](specs/02-ausleihe.md).
+[specs/02-ausleihe.md](specs/02-ausleihe.md); Phase 3 mit Prüfnachweis und
+Abnahmeliste in [specs/03-dashboard.md](specs/03-dashboard.md).
 
 ### Verwaltung bedienen
 
@@ -108,8 +112,29 @@ Stammdaten; die Zuordnung bleibt über IDs erhalten.
 lädt die Daten neu. Wenn ein anderer Mitarbeiter das ausgewählte Paar inzwischen
 verliehen hat, erscheint ein verständlicher Fehler und die Ski-Auswahl wird
 aktualisiert. Bei fehlenden Personen oder Paaren helfen Links zur Verwaltung.
-Die Oberfläche benötigt JavaScript; es gibt keine automatische Synchronisierung
-zwischen mehreren Browser-Tabs. Ausweisnachweise werden hier nicht angezeigt.
+Die Verwaltungsoberfläche benötigt JavaScript. Auswahllisten und Ausleihübersicht
+werden über „Aktualisieren“ erneuert; nach Konflikten werden Auswahl und Übersicht
+neu geladen. Das Dashboard aktualisiert seine Kennzahlen automatisch auch nach
+Änderungen in anderen Tabs. Ausweisnachweise werden hier nicht angezeigt.
+
+### Dashboard und Bedienung
+
+Die Startseite zeigt verfügbare und ausgeliehene Ski-Paare, Gesamtbestand und
+registrierte Personen. Verfügbare plus ausgeliehene Paare ergeben den Gesamtbestand.
+Beendete Ausleihen erhöhen die Anzahl ausgeliehener Paare nicht.
+
+Der Server liefert die Zahlen bereits beim Öffnen. Mit JavaScript werden sie
+sofort, alle 5 Sekunden nach der letzten Abfrage und bei Rückkehr zum Tab/Fenster
+aktualisiert. In verborgenen Tabs pausieren Abfragen. Der Status nennt den letzten
+Aktualisierungszeitpunkt; **Jetzt aktualisieren** lädt die Zahlen zusätzlich neu.
+Bei Verbindungsfehlern bleiben die letzten Zahlen mit einem Veraltet-Hinweis
+sichtbar. Sobald der Server wieder erreichbar ist, erholt sich die Anzeige
+automatisch. Ohne JavaScript stehen die Zahlen vom Öffnen der Seite zur Verfügung.
+
+Die drei Schnellzugriffe führen zur jeweiligen Verwaltung beziehungsweise zur
+Ausleihe. Tabulator, Umschalt+Tabulator, Pfeiltasten und Eingabetaste bedienen Links,
+Formulare und Auswahlfelder. „Zum Inhalt“ überspringt die Navigation; Fehler,
+Speicherbestätigungen und neue Detailansichten erhalten den passenden Fokus.
 
 ## Ursprüngliche Produktideen
 

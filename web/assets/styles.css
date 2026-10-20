@@ -150,3 +150,9 @@ dd { margin: 5px 0 0; }
 #rental-error:empty { display: none; }
 #rental-error:focus { outline: 2px solid #9b3021; outline-offset: 4px; }
 @media (max-width: 760px) { .rental-list { grid-template-columns: 1fr; } .rental-card { padding: 20px; } }
+
+.dashboard-update { display: flex; gap: 16px; justify-content: space-between; align-items: center; margin-top: 14px; }
+.dashboard-update p { font-size: 12px; color: var(--muted); line-height: 1.7; margin: 0; }
+.dashboard-update .field-error { color: #9b3021; }
+.dashboard-update button { flex-shrink: 0; }
+@media (max-width: 760px) { .dashboard-update { align-items: flex-start; flex-direction: column; } }

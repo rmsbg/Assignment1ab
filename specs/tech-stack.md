@@ -1,0 +1,133 @@
+# SkiRental – Technische Verfassung
+
+## Technische Basis
+
+| Bereich | Entscheidung | Begründung |
+| --- | --- | --- |
+| Backend | Go mit Standardbibliothek, HTTP über `net/http` | Kleine, verständliche Anwendung ohne Frameworkpflicht |
+| Frontend | HTML, CSS und JavaScript ohne Framework | Direkter Browserzugriff und geringer Einrichtungsaufwand |
+| Kommunikation | HTTP-API: JSON beim Lesen und für Ski; Multipart für Personen | Stammdaten und Foto gemeinsam atomar validieren und speichern |
+| Speicherung | In-Memory-Store mit Mutex | Entspricht dem Prototypumfang; keine Datenbank oder ORM |
+| Tests | Go-Paket `testing`, HTTP-Tests mit `net/http/httptest` | Geschäftsregeln und API-Verhalten überprüfbar machen |
+| Versionierung | Git; GitHub bei Bedarf | Nachvollziehbare Änderungen an Spezifikation und Code |
+
+HTML/JavaScript wird als die im Template erlaubte Frontend-Variante gewählt.
+Flutter ist nicht Teil dieses Entwurfs. Die Go-Version ist mit **1.27.3** in
+`go.mod` und der README festgehalten. Zusätzliche Abhängigkeiten
+erfordern vorherige Rückfrage gemäß Repository-Regeln.
+
+Für die Phase-0-Abnahme wurde die offizielle Go-1.27.3-Toolchain für macOS/arm64
+unter `/private/tmp/skirental-toolchain/go` eingerichtet und die SHA-256-Prüfsumme
+gegen die [offiziellen Download-Metadaten](https://go.dev/dl/?mode=json) geprüft.
+Sie ist temporär; die README beschreibt die PATH-Einrichtung und den Bedarf
+einer dauerhaften Installation für spätere Entwicklung.
+
+## Projektstruktur
+
+Die Phasen 0 und 1 verwenden die folgende Struktur:
+
+```text
+cmd/server/         Einstieg, Konfiguration und HTTP-Server
+internal/domain/    Person, Ski, Ausleihe und Geschäftsregeln
+internal/store/     Nebenläufigkeitssicherer In-Memory-Zustand
+internal/handler/   HTTP-Eingaben, Validierung und Antworten
+web/                HTML, CSS, JavaScript und statische Assets
+specs/              Verfassung und spätere Feature-Spezifikationen
+```
+
+Tests liegen als `*_test.go` neben dem jeweiligen Go-Code. Der Go-Server liefert
+auch das Frontend aus; ein separater Entwicklungsserver ist nicht erforderlich.
+HTTP-Handler greifen über Geschäftsoperationen auf den Zustand zu. Das Frontend
+kommuniziert ausschließlich über die API.
+
+## Lokaler Start und Demomodus
+
+Der Server ist unter `http://127.0.0.1:8080` erreichbar. Der normale Start erzeugt
+einen leeren Store. Mit dem Startparameter `-demo` werden reproduzierbar zwei
+bezeichnete Ski-Paare und eine synthetische Person mit manuellem Ausweisnachweis
+angelegt; aktive Ausleihen und Ausweisfotos sind nicht enthalten. Die Initialisierung
+erzeugt keine Duplikate. Nach einem Neustart werden vorherige Änderungen verworfen
+und der gewählte Startzustand wiederhergestellt.
+
+Vier Ansichten bieten Dashboard, Ski verwalten, Personen verwalten und Neue
+Ausleihe. Phase 1 implementiert Anlegen, Listen, Details und Bearbeiten für Ski
+und Personen. Dashboard-Zahlen und Ausleihe bleiben Platzhalter. Speicherhinweise
+und Demokennzeichnung sind auf allen Seiten sichtbar. Die Verwaltung liegt in
+`web/assets/verwaltung.js`; Details und Formulare werden im Browser aufgebaut.
+
+## Verwaltungs-API (Phase 1)
+
+`GET/POST /api/ski` und `GET/PUT /api/ski/{id}` verwenden JSON.
+`GET /api/personen` liefert ausschließlich ID und Name; `GET /api/personen/{id}`
+liefert den vollständigen Nachweis als manuelle Felder oder Foto-URL.
+`GET /api/personen/{id}/foto` liefert das geprüfte Bild. Personen-Schreibzugriffe
+(`POST /api/personen`, `PUT /api/personen/{id}`) verwenden **Multipart**, damit Name
+und Nachweis zusammen validiert und atomar gespeichert werden. Dies präzisiert
+den früher vorgesehenen separaten Foto-Upload. `proof=keep` erhält bei Änderungen
+den bisherigen Nachweis; `manual` und `photo` ersetzen ihn vollständig.
+
+Details zu Feldern und Fehlercodes: [01-verwaltung.md](01-verwaltung.md).
+Multipart wird begrenzt und ohne temporäre Dateien eingelesen. Die tatsächliche
+Bildgröße ist auf 5 MiB, die Dekodierung auf 20 Millionen Pixel begrenzt. JPEG/PNG,
+MIME-Deklaration und Dekodierbarkeit werden geprüft. Alle Antworten verwenden
+`Cache-Control: no-store` und `X-Content-Type-Options: nosniff`.
+
+## Daten und Konsistenz
+
+- **Person:** automatisch erzeugte, innerhalb des laufenden Systems eindeutige
+  ID, Name und Ausweisnachweis gemäß Mission. Bei manueller Erfassung sind
+  Ausweisnummer und eine der vier festgelegten Ausweisarten erforderlich; für
+  „Sonstiger Ausweis“ zusätzlich eine nach Entfernen von Leerraum nicht leere
+  Bezeichnung.
+- **Ski:** ein Paar mit eindeutiger ID und verständlicher Inventarbezeichnung.
+  Verfügbarkeit und Dashboard-Zahlen beziehen sich auf Paare.
+- **Ausleihe:** eindeutige ID, Personen-ID, Ski-ID, Ausleihzeitpunkt und optionaler
+  Rückgabezeitpunkt. Ohne Rückgabezeitpunkt ist sie aktiv.
+- Verfügbarkeit wird aus aktiven Ausleihen abgeleitet. Prüfung und Anlage einer
+  Ausleihe erfolgen gemeinsam unter einer Sperre. Rückgaben werden ebenso atomar
+  verarbeitet; wiederholte Rückgaben erzeugen keine weitere Bestandsänderung.
+- Dashboard-Zahlen werden aus einem konsistenten Zustand berechnet. Name und
+  manueller Ausweisnachweis dürfen nach Entfernen von Leerraum nicht leer sein.
+- Änderungen und ID-Vergabe erfolgen unter einer Schreibsperre. Leseoperationen
+  und Schreibantworten liefern unabhängige Bildkopien. Doppelte Namen sind erlaubt.
+- Maps und Foto-Inhalte bleiben ausschließlich im Arbeitsspeicher. Neustarts
+  verwerfen sämtliche Daten; die Oberfläche weist darauf hin.
+
+## Fehlerbehandlung und Datenschutz
+
+Das Backend prüft alle Eingaben unabhängig von Formularprüfungen. Die API
+unterscheidet ungültige Eingaben, fehlende Datensätze und Ausleihkonflikte mit
+passenden HTTP-Statuscodes. Technische Fehler werden mit Kontext und `%w`
+weitergegeben; Nutzern werden verständliche Meldungen angezeigt.
+
+Pro Person wird alternativ zur manuellen Ausweiserfassung ein JPEG- oder PNG-Foto
+mit höchstens 5 MiB (5.242.880 Byte) akzeptiert. Das Backend prüft die tatsächliche
+Dateigröße und den Bildinhalt; Dateiname und übermittelter Content-Type allein
+reichen nicht zur Formatprüfung. Ungültige oder zu große Dateien werden abgelehnt.
+Ausweisdaten erscheinen weder in Logs noch
+in Dashboard- oder Listenansichten. Secrets und reale Ausweisdaten gehören nicht
+ins Repository. Ohne Authentifizierung wird der Server standardmäßig nur an
+Loopback gebunden; externer oder produktiver Betrieb benötigt eine eigene
+Sicherheits- und Datenschutzspezifikation.
+
+## Entwicklungs- und Qualitätsregeln
+
+Structs und Methoden bilden das Domänenmodell ab. Interfaces werden nur bei
+konkretem Bedarf eingeführt; kein Dependency-Injection-Framework. Go-Code wird
+mit `go fmt ./...` formatiert. Generierte Dateien werden nicht manuell bearbeitet.
+
+Mit eingerichteter Go-Toolchain gelten vom Repository-Hauptverzeichnis aus:
+
+```sh
+go run ./cmd/server       # Anwendung starten
+go run ./cmd/server -demo # Mit synthetischen Beispieldaten starten
+go build ./...           # Alle Pakete kompilieren
+go test ./...            # Fachlogik und HTTP-Verhalten prüfen
+go test -race ./...      # Nebenläufige Zugriffe prüfen
+go vet ./...             # Statische Prüfung
+go fmt ./...             # Go-Code formatieren
+```
+
+Für neue Funktionen müssen Akzeptanzkriterien und relevante Fehlerfälle geprüft
+sein. Eine feste Coverage-Quote ist nicht vorgesehen. UI-Abläufe werden im Browser
+überprüft; `golangci-lint` ist erst bei expliziter Einrichtung erforderlich.

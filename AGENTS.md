@@ -29,6 +29,8 @@ Use Go’s standard `testing` package with `TestXxx` functions. Cover customer I
 
 ## Commit & Pull Request Guidelines
 
+Nach jeder ausdrücklich vom Auftraggeber abgenommenen Phase einen lokalen Git-Commit erstellen. Zuerst die Abnahme und den Prüfnachweis dokumentieren, dann die zugehörigen Änderungen committen. Commit-Nachrichten sollen Phase und Ergebnis verständlich benennen, z. B. `Phase 1: Personen- und Skiverwaltung abschließen`. Implementierung oder bestandene Tests allein gelten nicht als Auftraggeberabnahme.
+
 This directory has no Git history to establish conventions. Follow the template’s guidance: short, imperative commit subjects, such as `Add ski availability checks`. Pull requests should describe the behavior changed, reference relevant requirements or issues, and report validation performed. Include screenshots for frontend changes.
 
 ## Security & Configuration

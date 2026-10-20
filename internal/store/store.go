@@ -15,6 +15,7 @@ type Store struct {
 	mu         sync.RWMutex
 	nextPerson uint64
 	nextSki    uint64
+	nextRental uint64
 	demo       bool
 	people     map[string]domain.Person
 	skis       map[string]domain.Ski

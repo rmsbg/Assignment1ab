@@ -54,8 +54,11 @@ Die folgenden Entscheidungen ergänzen das README als Arbeitsgrundlage:
   alternative Nachweisarten.
 - Mitarbeiter wählen den verfügbaren Ski aus; eine automatische Auswahl ist
   zunächst nicht vorgesehen. Pro Ausleihe werden ein Kunde und ein Ski verknüpft.
+  Eine Person darf mehrere unterschiedliche Ski-Paare gleichzeitig ausleihen
+  (Phase-2-Festlegung vor Implementierung im Projektgespräch).
 - Ein Ski darf höchstens eine aktive Ausleihe haben. Eine Rückgabe beendet diese
-  und macht den Ski erneut verfügbar.
+  und macht den Ski erneut verfügbar. Wiederholte Rückgaben lassen den ursprünglichen
+  Zeitpunkt unverändert und beeinflussen keine spätere Ausleihe desselben Paars.
 - Der MVP umfasst das Anlegen, Anzeigen und Bearbeiten von Personen und Ski.
   Löschen, Wartungszustände und Reservierungen sind zunächst ausgeschlossen.
 - Der Gesamtbestand entspricht verfügbaren plus ausgeliehenen Ski.

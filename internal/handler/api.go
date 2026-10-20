@@ -21,14 +21,24 @@ func apiError(w http.ResponseWriter, err error) {
 	fields := domain.ValidationErrors{"form": "Die Anfrage ist ungültig."}
 	var validation domain.ValidationErrors
 	var size *http.MaxBytesError
+	var missing store.MissingReference
 	if errors.As(err, &validation) {
 		fields = validation
+	} else if errors.As(err, &missing) {
+		status = 404
+		fields = domain.ValidationErrors{missing.Field: missing.Error()}
+	} else if errors.Is(err, store.ErrUnavailable) {
+		status = 409
+		fields = domain.ValidationErrors{"skiID": store.ErrUnavailable.Error()}
 	} else if errors.Is(err, store.ErrNotFound) {
 		status = 404
 		fields["form"] = "Der Datensatz wurde nicht gefunden."
 	} else if errors.As(err, &size) {
 		status = 413
-		fields["photo"] = "Die Anfrage ist zu groß. Foto: höchstens 5 MiB."
+		fields = domain.ValidationErrors{"form": "Die Anfrage ist zu groß. Bitte die Eingaben verkleinern."}
+		if size.Limit == domain.MaxPhotoBytes {
+			fields = domain.ValidationErrors{"photo": "Das Foto darf höchstens 5 MiB groß sein."}
+		}
 	}
 	writeJSON(w, status, map[string]any{"errors": fields})
 }

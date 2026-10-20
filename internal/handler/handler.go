@@ -44,6 +44,7 @@ func New(state *store.Store) (http.Handler, error) {
 	}
 	mux := http.NewServeMux()
 	registerAPI(mux, state)
+	registerRentals(mux, state)
 	for _, current := range pages {
 		pattern := "GET " + current.Path
 		if current.Path == "/" {

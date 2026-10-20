@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | Backend | Go mit Standardbibliothek, HTTP über `net/http` | Kleine, verständliche Anwendung ohne Frameworkpflicht |
 | Frontend | HTML, CSS und JavaScript ohne Framework | Direkter Browserzugriff und geringer Einrichtungsaufwand |
-| Kommunikation | HTTP-API: JSON beim Lesen und für Ski; Multipart für Personen | Stammdaten und Foto gemeinsam atomar validieren und speichern |
+| Kommunikation | HTTP-API: JSON beim Lesen, für Ski und Ausleihen; Multipart für Personen | Stammdaten und Foto gemeinsam atomar validieren und speichern |
 | Speicherung | In-Memory-Store mit Mutex | Entspricht dem Prototypumfang; keine Datenbank oder ORM |
 | Tests | Go-Paket `testing`, HTTP-Tests mit `net/http/httptest` | Geschäftsregeln und API-Verhalten überprüfbar machen |
 | Versionierung | Git; GitHub bei Bedarf | Nachvollziehbare Änderungen an Spezifikation und Code |
@@ -24,7 +24,7 @@ einer dauerhaften Installation für spätere Entwicklung.
 
 ## Projektstruktur
 
-Die Phasen 0 und 1 verwenden die folgende Struktur:
+Die Phasen 0 bis 2 verwenden die folgende Struktur:
 
 ```text
 cmd/server/         Einstieg, Konfiguration und HTTP-Server
@@ -51,9 +51,11 @@ und der gewählte Startzustand wiederhergestellt.
 
 Vier Ansichten bieten Dashboard, Ski verwalten, Personen verwalten und Neue
 Ausleihe. Phase 1 implementiert Anlegen, Listen, Details und Bearbeiten für Ski
-und Personen. Dashboard-Zahlen und Ausleihe bleiben Platzhalter. Speicherhinweise
+und Personen. Phase 2 ergänzt Ausleihe, Rückgabe und Verlauf; nur Dashboard-Zahlen
+bleiben Platzhalter. Speicherhinweise
 und Demokennzeichnung sind auf allen Seiten sichtbar. Die Verwaltung liegt in
-`web/assets/verwaltung.js`; Details und Formulare werden im Browser aufgebaut.
+`web/assets/verwaltung.js`, Ausleihen in `web/assets/ausleihe.js`; Details und
+Formulare werden im Browser aufgebaut.
 
 ## Verwaltungs-API (Phase 1)
 
@@ -71,6 +73,26 @@ Multipart wird begrenzt und ohne temporäre Dateien eingelesen. Die tatsächlich
 Bildgröße ist auf 5 MiB, die Dekodierung auf 20 Millionen Pixel begrenzt. JPEG/PNG,
 MIME-Deklaration und Dekodierbarkeit werden geprüft. Alle Antworten verwenden
 `Cache-Control: no-store` und `X-Content-Type-Options: nosniff`.
+
+## Ausleih-API (Phase 2)
+
+`GET/POST /api/ausleihen` listet Ausleihen beziehungsweise legt eine mit
+`personID` und `skiID` an. `GET /api/ausleihen/{id}` liefert Details;
+`PUT /api/ausleihen/{id}/rueckgabe` akzeptiert einen leeren Body und erfasst die
+Rückgabe idempotent. `GET /api/ski/verfuegbar` liefert verfügbare Paare.
+Listen und Details enthalten Namen/IDs und UTC-Zeitpunkte, keine Ausweisnachweise.
+`returnedAt: null` kennzeichnet aktive Ausleihen; die Oberfläche formatiert
+Zeitpunkte in der lokalen Browserzeitzone.
+
+Der Store prüft Referenzen und Verfügbarkeit unter derselben Schreibsperre wie
+die Anlage. Rückgaben betreffen ausschließlich die jeweilige Ausleih-ID.
+Mehrere Ausleihen pro Person sind zulässig. Verfügbarkeit und Namenszuordnung
+werden jeweils unter einer Lesesperre ermittelt; Ergebniswerte sind unabhängige
+Kopien. Unbekannte Referenzen liefern 404, belegte Paare 409. Request-Felder und
+Zeitpunkte sind strikt begrenzt; JSON-Requests maximal 64 KiB. Auswahl und Liste
+werden nach erfolgreichen Aktionen neu geladen, veraltete Ski-Auswahl nach einem
+Konflikt aktualisiert. Andere Tabs verwenden „Aktualisieren“; kein Push-Mechanismus.
+Details und Fehlercodes: [02-ausleihe.md](02-ausleihe.md).
 
 ## Daten und Konsistenz
 

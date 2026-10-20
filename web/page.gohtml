@@ -7,6 +7,7 @@
   <title>{{.Current.Title}} · SkiRental</title>
   <link rel="stylesheet" href="/assets/styles.css">
   <script src="/assets/verwaltung.js" defer></script>
+  <script src="/assets/ausleihe.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#inhalt">Zum Inhalt</a>
@@ -48,7 +49,7 @@
       </section>
 
       <section class="welcome-panel" aria-labelledby="welcome-title">
-        <div class="welcome-copy"><span class="panel-tag">DER ANFANG IST GEMACHT</span><h2 id="welcome-title">Bereit für den<br>nächsten Schritt.</h2><p>Der Arbeitsbereich steht. Personen und Ski kannst du jetzt verwalten. Die Ausleihe folgt als Nächstes.</p><span class="phase-pill">Phase 1 · Verwaltung</span></div>
+        <div class="welcome-copy"><span class="panel-tag">DER ANFANG IST GEMACHT</span><h2 id="welcome-title">Bereit für den<br>nächsten Schritt.</h2><p>Der Arbeitsbereich steht. Personen und Ski kannst du jetzt verwalten. Ausleihen und Rückgaben kannst du hier erfassen.</p><span class="phase-pill">Phase 2 · Ausleihe und Rückgabe</span></div>
         <svg class="mountains" viewBox="0 0 480 250" fill="none" aria-hidden="true"><circle cx="350" cy="65" r="35" fill="#efd9a8"/><path d="m0 250 155-204 95 119 55-71 175 156H0Z" fill="#395651"/><path d="m51 250 172-168 153 168H51Z" fill="#6c8a78"/><path d="m107 108 48-62 47 59-28-8-19 13-14-16-34 14Z" fill="#f1f2e5"/><path d="m175 129 48-47 53 58-34-13-18 12-18-17-31 7Z" fill="#dce5d7"/><path d="M0 233c96-20 118 23 215 4s156-24 265 0v13H0Z" fill="#a7b69a"/><path d="m337 171-12 31h24l-12-31Zm38 20-10 27h20l-10-27Z" fill="#213d39"/></svg>
       </section>
 
@@ -57,7 +58,7 @@
         <div class="shortcuts">
           <a class="shortcut" href="/ski"><span class="shortcut-icon" aria-hidden="true">01</span><h3>Ski verwalten <span aria-hidden="true">↗</span></h3><p>Alle Ski-Paare anlegen, anzeigen und bearbeiten.</p><small>Anlegen · Anzeigen · Bearbeiten</small></a>
           <a class="shortcut" href="/personen"><span class="shortcut-icon" aria-hidden="true">02</span><h3>Personen verwalten <span aria-hidden="true">↗</span></h3><p>Personen und ihre Ausweisnachweise verwalten.</p><small>Anlegen · Anzeigen · Bearbeiten</small></a>
-          <a class="shortcut" href="/ausleihe"><span class="shortcut-icon" aria-hidden="true">03</span><h3>Neue Ausleihe <span aria-hidden="true">↗</span></h3><p>Hier beginnt der Weg vom Ski-Paar auf die Piste.</p><small>Ausleihe folgt in Phase 2</small></a>
+          <a class="shortcut" href="/ausleihe"><span class="shortcut-icon" aria-hidden="true">03</span><h3>Neue Ausleihe <span aria-hidden="true">↗</span></h3><p>Hier beginnt der Weg vom Ski-Paar auf die Piste.</p><small>Ausleihen · Rückgaben</small></a>
         </div>
       </section>
       {{else if or (eq .Current.Path "/ski") (eq .Current.Path "/personen")}}
@@ -67,14 +68,13 @@
         <noscript>Bitte JavaScript aktivieren, um die Verwaltung zu verwenden.</noscript>
       </section>
       {{else}}
-      <section class="empty-panel" aria-labelledby="placeholder-title">
-        <span class="empty-symbol" aria-hidden="true">03</span>
-        <p class="eyebrow">DIESER BEREICH WÄCHST ALS NÄCHSTES</p>
-        <h2 id="placeholder-title">Ein Paar. Ein Kunde. Los geht’s.</h2><p>Hier kannst du künftig einer registrierten Person ein verfügbares Ski-Paar zuweisen und die Rückgabe erfassen.</p><span class="planned-label">Geplant für Phase 2 · Ausleihe und Rückgabe</span>
-        <a class="back-link" href="/">← Zurück zum Dashboard</a>
+      <section id="ausleihe" aria-label="Ausleihe und Rückgabe">
+        <p role="status" id="rental-message" tabindex="-1"></p>
+        <div id="rental-content"><p>Ausleihen werden geladen …</p></div>
+        <noscript>Bitte JavaScript aktivieren, um Ausleihen und Rückgaben zu erfassen.</noscript>
       </section>
       {{end}}
-      <footer class="footer"><span>SkiRental · Einfach gut organisiert.</span><span>Phase 1 <span aria-hidden="true">/</span> Verwaltung</span></footer>
+      <footer class="footer"><span>SkiRental · Einfach gut organisiert.</span><span>Phase 2 <span aria-hidden="true">/</span> Ausleihe und Rückgabe</span></footer>
     </main>
   </div>
 </body>

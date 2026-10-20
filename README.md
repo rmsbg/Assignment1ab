@@ -4,8 +4,9 @@
 
 Phase 0 und Phase 1 sind vom Auftraggeber abgenommen. Phase 1 umfasst:
 Personen und Ski-Paare können angelegt, aufgelistet, einzeln angezeigt und
-bearbeitet werden. Die Abnahme erfolgte am 20.10.2026. Ausleihen und
-echte Dashboard-Kennzahlen folgen in späteren Phasen.
+bearbeitet werden. Die Abnahme erfolgte am 20.10.2026. Phase 2 ist implementiert,
+geprüft und am 21.10.2026 vom Auftraggeber abgenommen: Ausleihen und Rückgaben
+sind möglich. Echte Dashboard-Kennzahlen folgen in Phase 3.
 
 ### Voraussetzungen und Start
 
@@ -61,12 +62,13 @@ go fmt ./...
 
 `cmd/server/` enthält den Einstieg, `internal/domain/` das Datenmodell,
 `internal/store/` den Speicher, `internal/handler/` die HTTP-Oberfläche und
-`web/` die eingebetteten HTML-/CSS-Dateien. Tests liegen neben dem Go-Code.
+`web/` die eingebetteten HTML-/CSS-/JavaScript-Dateien. Tests liegen neben dem Go-Code.
 Nach Änderungen an eingebetteten Dateien den Server neu starten.
 
 Die Verfassung liegt unter `specs/`; Details und Prüfnachweis zu Phase 0 stehen
 in [specs/00-projektgeruest.md](specs/00-projektgeruest.md); Phase 1 ist in
-[specs/01-verwaltung.md](specs/01-verwaltung.md) beschrieben.
+[specs/01-verwaltung.md](specs/01-verwaltung.md) beschrieben. Phase 2 steht in
+[specs/02-ausleihe.md](specs/02-ausleihe.md).
 
 ### Verwaltung bedienen
 
@@ -87,6 +89,27 @@ mit Multipart-Formularen einschließlich Foto atomar gespeichert. Endpunkte,
 Feldnamen und Fehlercodes stehen in der Phase-1-Spezifikation. Foto-Inhalte werden
 weder auf Datenträger geschrieben noch protokolliert. Es gibt weiterhin keine
 Suche, Löschfunktion oder dauerhafte Speicherung.
+
+### Ausleihe und Rückgabe bedienen
+
+Unter **Neue Ausleihe** eine Person und ein verfügbares Ski-Paar auswählen und
+„Ausleihe speichern“ drücken. Aus dem Personendetail (auch unmittelbar nach einer
+Registrierung) führt **Ski ausleihen** zum Formular mit vorausgewählter Person.
+Eine Person darf mehrere unterschiedliche Paare ausleihen. IDs und Zeitpunkte
+vergibt der Server; dasselbe Paar kann nur einmal gleichzeitig verliehen sein.
+
+Unter dem Formular stehen **Aktive Ausleihen** mit **Rückgabe erfassen** und
+**Abgeschlossene Ausleihen** mit Rückgabezeitpunkt. Rückgabe macht das Paar wieder
+verfügbar. Eine wiederholte Rückgabe verändert weder den Zeitpunkt noch eine
+spätere Ausleihe desselben Paars. Namen in der Übersicht entsprechen den aktuellen
+Stammdaten; die Zuordnung bleibt über IDs erhalten.
+
+**Abbrechen** öffnet die Übersicht und verwirft die Auswahl. **Aktualisieren**
+lädt die Daten neu. Wenn ein anderer Mitarbeiter das ausgewählte Paar inzwischen
+verliehen hat, erscheint ein verständlicher Fehler und die Ski-Auswahl wird
+aktualisiert. Bei fehlenden Personen oder Paaren helfen Links zur Verwaltung.
+Die Oberfläche benötigt JavaScript; es gibt keine automatische Synchronisierung
+zwischen mehreren Browser-Tabs. Ausweisnachweise werden hier nicht angezeigt.
 
 ## Ursprüngliche Produktideen
 

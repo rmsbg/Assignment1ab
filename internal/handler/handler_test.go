@@ -47,8 +47,8 @@ func TestPagesInBothModes(t *testing.T) {
 				if path == "/" && strings.Count(body, `aria-label="Noch nicht verfügbar">—`) != 4 {
 					t.Error("dashboard must display four unavailable metrics, not numeric values")
 				}
-				if path == "/ausleihe" && !strings.Contains(body, "Geplant für Phase") {
-					t.Error("page must explain its placeholder status")
+				if path == "/ausleihe" && !strings.Contains(body, `id="ausleihe"`) {
+					t.Error("rental interface missing")
 				}
 			})
 		}

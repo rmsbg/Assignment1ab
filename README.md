@@ -8,6 +8,9 @@ bearbeitet werden. Die Abnahme erfolgte am 20.10.2026. Phase 2 ist implementiert
 geprüft und am 21.10.2026 vom Auftraggeber abgenommen: Ausleihen und Rückgaben
 sind möglich. Phase 3 ist implementiert, geprüft und am 21.10.2026 vom Auftraggeber
 abgenommen. Das Dashboard zeigt echte Kennzahlen und aktualisiert sich automatisch.
+Phase 4 ist implementiert, geprüft und am 21.10.2026 ausdrücklich vom Auftraggeber
+abgenommen. Damit ist der vereinbarte MVP abgeschlossen. Gesamtprüfnachweis und Abnahmeliste stehen in
+[specs/04-mvp-abnahme.md](specs/04-mvp-abnahme.md).
 
 ### Voraussetzungen und Start
 
@@ -40,6 +43,20 @@ automatisch gestartet. Beenden mit `Ctrl+C`. Ist Port 8080 belegt, zuerst den
 anderen Dienst beenden. Der Server bindet ausschließlich an die lokale
 Loopback-Adresse; es gibt noch keine Benutzerkonten.
 
+Für einen vorführbaren Build mit eingebetteten HTML-/CSS-/JavaScript-Dateien:
+
+```sh
+mkdir -p bin
+go build -o bin/skirental ./cmd/server
+./bin/skirental
+# Alternativ:
+./bin/skirental -demo
+```
+
+Die ausführbare Datei kann auch außerhalb des Repositorys gestartet werden;
+zusätzliche Asset-Dateien sind nicht nötig. Der Build gilt für das jeweilige
+Betriebssystem und die Prozessorarchitektur. `bin/` wird nicht versioniert.
+
 ### Startzustand und Grenzen
 
 - Normalmodus: leerer Store.
@@ -48,6 +65,8 @@ Loopback-Adresse; es gibt noch keine Benutzerkonten.
   Demodaten auf; der Modus wird sichtbar angezeigt.
 - Alle Änderungen gehen beim Neustart verloren. Danach entsteht erneut der
   gewählte leere oder Demo-Startzustand.
+- IDs sind innerhalb eines Serverlaufs eindeutig; nach Neustarts können sie
+  erneut vergeben werden. Nach einem Moduswechsel Browserseiten neu laden.
 - Das Dashboard zählt Ski-Paare und Personen aus dem aktuellen Store.
 - Kennzahlen aktualisieren sich automatisch alle 5 Sekunden sowie bei Rückkehr
   zum Dashboard-Tab. Bei Fehlern bleibt der letzte Stand als veraltet markiert.
@@ -63,9 +82,23 @@ go vet ./...
 go fmt ./...
 ```
 
+Der automatisierte MVP-Gesamtfluss kann gezielt ausgeführt werden:
+
+```sh
+go test ./internal/handler -run TestMVPAcceptanceWorkflow -v
+```
+
+Er prüft Normal- und Demomodus jeweils mit manuellem Nachweis, PNG und JPEG,
+einschließlich Ausleihkonflikt, Rückgabe und erneuter Ausleihe. Für die manuelle
+Browserprüfung liegt ein ausschließlich synthetisches Foto unter
+[testdata/ausweis-demo.png](testdata/ausweis-demo.png). Herkunft und Nutzung:
+[testdata/README.md](testdata/README.md). Den vollständigen Vorführablauf mit
+erwarteten Kennzahlen enthält die Phase-4-Spezifikation.
+
 `cmd/server/` enthält den Einstieg, `internal/domain/` das Datenmodell,
 `internal/store/` den Speicher, `internal/handler/` die HTTP-Oberfläche und
 `web/` die eingebetteten HTML-/CSS-/JavaScript-Dateien. Tests liegen neben dem Go-Code.
+`testdata/` enthält synthetische Prüfdaten.
 Nach Änderungen an eingebetteten Dateien den Server neu starten.
 
 Die Verfassung liegt unter `specs/`; Details und Prüfnachweis zu Phase 0 stehen
@@ -73,6 +106,9 @@ in [specs/00-projektgeruest.md](specs/00-projektgeruest.md); Phase 1 ist in
 [specs/01-verwaltung.md](specs/01-verwaltung.md) beschrieben. Phase 2 steht in
 [specs/02-ausleihe.md](specs/02-ausleihe.md); Phase 3 mit Prüfnachweis und
 Abnahmeliste in [specs/03-dashboard.md](specs/03-dashboard.md).
+Die browserseitige Abschlussprüfung von Phase 4 erfolgte in Chrome auf dem
+Desktop. Die in Phase 3 geprüfte mobile Darstellung und Tastaturbedienung bleiben
+dokumentiert; ein eigener Screenreader- oder Gerätetest ist nicht erfolgt.
 
 ### Verwaltung bedienen
 

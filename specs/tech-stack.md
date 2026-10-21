@@ -24,7 +24,7 @@ einer dauerhaften Installation für spätere Entwicklung.
 
 ## Projektstruktur
 
-Die Phasen 0 bis 3 verwenden die folgende Struktur:
+Die Phasen 0 bis 4 verwenden die folgende Struktur:
 
 ```text
 cmd/server/         Einstieg, Konfiguration und HTTP-Server
@@ -33,6 +33,7 @@ internal/store/     Nebenläufigkeitssicherer In-Memory-Zustand
 internal/handler/   HTTP-Eingaben, Validierung und Antworten
 web/                HTML, CSS, JavaScript und statische Assets
 specs/              Verfassung und spätere Feature-Spezifikationen
+testdata/           Ausschließlich synthetische Foto-Prüfdaten
 ```
 
 Tests liegen als `*_test.go` neben dem jeweiligen Go-Code. Der Go-Server liefert
@@ -57,6 +58,25 @@ und Demokennzeichnung sind auf allen Seiten sichtbar. Die Verwaltung liegt in
 `web/assets/verwaltung.js`, Ausleihen in `web/assets/ausleihe.js`; Details und
 Formulare werden im Browser aufgebaut. `web/assets/dashboard.js` aktualisiert
 die vom Server bereits gerenderten Kennzahlen.
+
+HTML, CSS und JavaScript sind mit `go:embed` in der ausführbaren Datei enthalten.
+Ein mit `go build -o bin/skirental ./cmd/server` erzeugter Build benötigt beim
+Start kein Repository und keinen Zugriff auf dessen Asset-Dateien. Phase 4 hat
+den Start aus einem anderen Arbeitsverzeichnis in beiden Modi geprüft.
+
+## MVP-Gesamtprüfung (Phase 4)
+
+`TestMVPAcceptanceWorkflow` prüft den Gesamtfluss über die öffentliche
+HTTP-Schnittstelle in sechs unabhängigen Varianten: Normal-/Demomodus jeweils
+mit manuellem Nachweis, PNG und JPEG. Die PNG-Testdatei unter `testdata/` ist
+synthetisch; JPEG entsteht daraus nur während des Tests im Arbeitsspeicher.
+Registrierung, Dashboard, Ausleihe, Konflikt, Rückgabe, Wiederholung und erneute
+Ausleihe werden zusammen geprüft. Die vorhandenen Fach-, HTTP- und Race-Tests
+bleiben Teil der Prüfung. Neue Abhängigkeiten sind nicht hinzugekommen.
+
+Der Browserprüfumfang und die bekannten Grenzen stehen im
+[Phase-4-Prüfnachweis](04-mvp-abnahme.md). Technischer Abschluss und ausdrückliche
+Auftraggeberabnahme werden getrennt dokumentiert.
 
 ## Verwaltungs-API (Phase 1)
 

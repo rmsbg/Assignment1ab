@@ -6,10 +6,11 @@ Phase 0 ist vom Auftraggeber abgenommen; siehe dessen Bestätigung, auf die der
 Phase-1-Implementierungsauftrag vom 20.10.2026 verweist. Phase 1 ist implementiert,
 geprüft und am 20.10.2026 ausdrücklich vom Auftraggeber abgenommen. Phase 2 ist implementiert, geprüft
 und am 21.10.2026 ausdrücklich vom Auftraggeber abgenommen. Phase 3 ist implementiert, geprüft
-und am 21.10.2026 ausdrücklich vom Auftraggeber abgenommen. Phase 4 ist offen. Details und
+und am 21.10.2026 ausdrücklich vom Auftraggeber abgenommen. Phase 4 ist implementiert
+und geprüft sowie am 21.10.2026 ausdrücklich vom Auftraggeber abgenommen. Details und
 Prüfnachweise stehen in [00-projektgeruest.md](00-projektgeruest.md),
 [01-verwaltung.md](01-verwaltung.md), [02-ausleihe.md](02-ausleihe.md) und
-[03-dashboard.md](03-dashboard.md). Diese Roadmap
+[03-dashboard.md](03-dashboard.md) sowie [04-mvp-abnahme.md](04-mvp-abnahme.md). Diese Roadmap
 ordnet Arbeit nach Abhängigkeiten; sie enthält keine zugesagten Termine.
 
 Für jede Phase gilt: **Spezifizieren → Aufgaben ableiten → Implementieren →
@@ -22,7 +23,8 @@ Ab sofort folgt auf jede ausdrücklich bestätigte Auftraggeberabnahme ein lokal
 Git-Commit mit verständlicher Benennung von Phase und Ergebnis. Vor dem Commit
 werden Abnahmestatus und Prüfnachweis aktualisiert. Phase 1 ist mit
 `98354ce` (`Phase 1: Personen- und Skiverwaltung abschließen`) gesichert, Phase 2
-mit `237dc0a` (`Phase 2: Ausleihe und Rückgabe abschließen`).
+mit `237dc0a` (`Phase 2: Ausleihe und Rückgabe abschließen`), Phase 3 mit
+`da55add` (`Phase 3: Dashboard und durchgängige Bedienung abschließen`).
 
 ## Phase 0 – Fachliche Entscheidungen und Projektgerüst
 
@@ -114,6 +116,12 @@ Schnellzugriffe aus M-03 und M-04.
 - Formulare besitzen sichtbare Beschriftungen und sind per Tastatur bedienbar.
 
 ## Phase 4 – MVP-Abnahme und Dokumentation
+
+**Status:** Implementiert, geprüft und vom Auftraggeber am 21.10.2026 abgenommen.
+Bestätigung im Projektgespräch: „phase 4 ist hiermit abgenommen“.
+Spezifikation, Prüfnachweis, Screenshots und Abnahmeliste:
+[04-mvp-abnahme.md](04-mvp-abnahme.md). Der vereinbarte MVP ist damit abgeschlossen;
+die Phase wird mit dem lokalen Commit `Phase 4: MVP-Abnahme und Dokumentation abschließen` gesichert.
 
 **Ergebnis:** Ein vorführbarer Prototyp mit reproduzierbarem Start und
 nachvollziehbarem Prüfnachweis.

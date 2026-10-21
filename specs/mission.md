@@ -66,8 +66,9 @@ Die folgenden Entscheidungen ergänzen das README als Arbeitsgrundlage:
 ## Grenzen und Erfolgskriterien
 
 Der MVP ist ein lokaler Prototyp für Mitarbeiter. Kundenportal, Zahlungen,
-Tarife, Reservierungen, dauerhafte Speicherung, Benutzerkonten und produktiver
-Betrieb sind nicht Bestandteil dieser Roadmap. Daten gehen beim Neustart verloren.
+dauerhafte Speicherung, Benutzerkonten und produktiver Betrieb sind nicht
+Bestandteil dieser Roadmap. Phase 5 erweitert den abgenommenen MVP um
+Terminbuchungen und gemeinsame Tarife; Zahlungen bleiben ausgeschlossen. Daten gehen beim Neustart verloren.
 
 Die Anwendung startet standardmäßig ohne Daten. Ein optionaler Demomodus lädt
 zwei Ski-Paare und eine synthetische Person mit manuellem Ausweisnachweis, ohne
@@ -84,3 +85,31 @@ Werte zeigt. Doppelte Ausleihen müssen auch bei gleichzeitigen Anfragen scheite
 dokumentiert und begründet. Feature-Spezifikationen müssen dazu passen. Offene
 fachliche Fragen werden vor der betroffenen Implementierung geklärt; die
 Verfassung wird nicht stillschweigend durch Code überschrieben.
+
+## Erweiterung Phase 5 – Termine und Preise
+
+Planung im Projektgespräch am 21.10.2026 abgeschlossen; anschließend ausdrücklich
+zur Implementierung beauftragt. Nach Implementierung und technischer Prüfung
+am 21.10.2026 ausdrücklich vom Auftraggeber abgenommen. Die Abnahmen der
+Phasen 0–4 bleiben historisch gültig.
+Für Phase 5 ersetzen folgende Regeln die bisherigen Einschränkungen zu Terminen,
+Reservierungen und Tarifen sowie den automatischen Ausleihbeginn:
+
+- Buchungen gelten für ein Paar und eine Person, ab heute einschließlich beider
+  Randtage. Kalender und Geschäftsdatum richten sich nach Europe/Vienna.
+- Buchung, tatsächliche Ausgabe, Rückgabe und Stornierung sind getrennte Schritte.
+  Ausgabe nur innerhalb des Buchungszeitraums und ohne andere offene Ausgabe
+  desselben Paars. Nicht ausgegebene Buchungen können storniert und neu gebucht werden.
+- Überschneidende offene Buchungen sind ausgeschlossen. Folgetermine ab dem nächsten
+  Tag bleiben auch bei noch nicht zurückgegebenen Paaren möglich; verspätete
+  Rückgaben blockieren deren Ausgabe. Keine automatische Ausgabe oder Rückgabe.
+- Gemeinsame EUR-Tarife: Gesamtpreise für 1 bis N Tage und Preis je Zusatztag.
+  Preis und Tarifversion werden bei Buchung festgeschrieben; tatsächliche Dauer
+  und spätere Tarifänderungen ändern den Preis nicht.
+- Das Dashboard zählt tatsächlich ausgegebene Paare. Terminbezogene Verfügbarkeit
+  wird im Buchungsformular geprüft. Abgelaufene Buchungen und überfällige
+  Ausleihen werden kenntlich gemacht.
+- Normalstart ohne Tarif; Demo mit 25/45/60 EUR für 1/2/3 Tage und 15 EUR je
+  Zusatztag. Auch Tarife gehen beim Neustart verloren.
+
+Prüfbare Details: [05-termine-preise.md](05-termine-preise.md).

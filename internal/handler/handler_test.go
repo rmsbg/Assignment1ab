@@ -18,7 +18,7 @@ func TestPagesInBothModes(t *testing.T) {
 		}
 		for path, title := range map[string]string{
 			"/": "Dashboard", "/ski": "Ski verwalten",
-			"/personen": "Personen verwalten", "/ausleihe": "Neue Ausleihe",
+			"/tarife": "Tarife verwalten", "/personen": "Personen verwalten", "/ausleihe": "Neue Ausleihe",
 		} {
 			t.Run(fmt.Sprintf("%s/demo=%t", path, demo), func(t *testing.T) {
 				r := httptest.NewRecorder()

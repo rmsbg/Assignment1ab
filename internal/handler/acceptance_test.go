@@ -101,10 +101,10 @@ func TestMVPAcceptanceWorkflow(t *testing.T) {
 						t.Fatal("overview exposed proof")
 					}
 				}
-				input, err := json.Marshal(map[string]string{"personID": person.ID, "skiID": ski.ID})
-				if err != nil {
-					t.Fatal(err)
+				if !demo {
+					call(t, app, "PUT", "/api/tarife", "application/json", strings.NewReader(`{"version":0,"pricesCents":[2500,4500,6000],"extraDayCents":1500}`), 200)
 				}
+				input := []byte(bookingBody(person.ID, ski.ID, 1))
 				create := func() rentalResponse {
 					t.Helper()
 					w := call(t, app, "POST", "/api/ausleihen", "application/json", bytes.NewReader(input), 201)
@@ -115,7 +115,7 @@ func TestMVPAcceptanceWorkflow(t *testing.T) {
 					if rental.PersonID != person.ID || rental.SkiID != ski.ID || rental.PersonName != person.Name || rental.SkiName != ski.Name || rental.ReturnedAt != nil {
 						t.Fatal("rental references wrong records")
 					}
-					return rental
+					return issueHTTP(t, app, rental.ID)
 				}
 				first := create()
 				expect(1, 1, 1)

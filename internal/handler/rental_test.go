@@ -19,7 +19,7 @@ func TestRentalAPI(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	body := `{"personID":"demo-person-01","skiID":"demo-ski-01"}`
+	body := bookingBody("demo-person-01", "demo-ski-01", 1)
 	empty := call(t, app, "GET", "/api/ausleihen", "", nil, 200)
 	if strings.TrimSpace(empty.Body.String()) != "[]" {
 		t.Fatal("expected empty list")
@@ -31,8 +31,8 @@ func TestRentalAPI(t *testing.T) {
 		field  string
 	}{
 		{`{}`, 400, "personID"}, {`{"personID":"demo-person-01"}`, 400, "skiID"},
-		{`{"personID":"missing","skiID":"demo-ski-01"}`, 404, "personID"},
-		{`{"personID":"demo-person-01","skiID":"missing"}`, 404, "skiID"},
+		{strings.Replace(body, "demo-person-01", "missing", 1), 404, "personID"},
+		{strings.Replace(body, "demo-ski-01", "missing", 1), 404, "skiID"},
 		{`{"personID":"demo-person-01","skiID":"demo-ski-01","id":"override"}`, 400, "form"},
 		{`{"personID":"demo-person-01","skiID":"demo-ski-01","rentedAt":"override"}`, 400, "form"},
 		{body + ` {}`, 400, "form"}, {`broken`, 400, "form"}, {`{"personID":"` + strings.Repeat("x", 70000) + `"}`, 413, "form"},
@@ -52,17 +52,21 @@ func TestRentalAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 	path := "/api/ausleihen/" + rental.ID
-	if created.Header().Get("Location") != path || rental.ReturnedAt != nil || rental.RentedAt.IsZero() || rental.PersonName != "Demo Person" {
+	if created.Header().Get("Location") != path || rental.ReturnedAt != nil || rental.RentedAt != nil || rental.PersonName != "Demo Person" {
 		t.Fatal("invalid created response")
 	}
 	call(t, app, "GET", path, "", nil, 200)
+	issueHTTP(t, app, rental.ID)
 	call(t, app, "POST", "/api/ausleihen", "application/json", strings.NewReader(body), 409)
 	available := call(t, app, "GET", "/api/ski/verfuegbar", "", nil, 200)
 	if strings.Contains(available.Body.String(), "demo-ski-01") {
 		t.Fatal("rented ski offered")
 	}
 	// Multiple active rentals for the same person are valid.
-	call(t, app, "POST", "/api/ausleihen", "application/json", strings.NewReader(strings.Replace(body, "demo-ski-01", "demo-ski-02", 1)), 201)
+	second := call(t, app, "POST", "/api/ausleihen", "application/json", strings.NewReader(strings.Replace(body, "demo-ski-01", "demo-ski-02", 1)), 201)
+	var secondRental rentalResponse
+	_ = json.Unmarshal(second.Body.Bytes(), &secondRental)
+	issueHTTP(t, app, secondRental.ID)
 	available = call(t, app, "GET", "/api/ski/verfuegbar", "", nil, 200)
 	if strings.TrimSpace(available.Body.String()) != "[]" {
 		t.Fatal("expected no available skis")
@@ -77,7 +81,10 @@ func TestRentalAPI(t *testing.T) {
 	if returned.Body.String() != again.Body.String() {
 		t.Fatal("repeated return changed response")
 	}
-	call(t, app, "POST", "/api/ausleihen", "application/json", strings.NewReader(body), 201)
+	replacement := call(t, app, "POST", "/api/ausleihen", "application/json", strings.NewReader(body), 201)
+	var replacementRental rentalResponse
+	_ = json.Unmarshal(replacement.Body.Bytes(), &replacementRental)
+	issueHTTP(t, app, replacementRental.ID)
 	call(t, app, "PUT", path+"/rueckgabe", "", nil, 200)
 	available = call(t, app, "GET", "/api/ski/verfuegbar", "", nil, 200)
 	if strings.TrimSpace(available.Body.String()) != "[]" {
@@ -105,7 +112,7 @@ func TestConcurrentRentalHTTP(t *testing.T) {
 	codes := make(chan int, 24)
 	for range 24 {
 		wg.Go(func() {
-			r := httptest.NewRequest(http.MethodPost, "/api/ausleihen", strings.NewReader(`{"personID":"demo-person-01","skiID":"demo-ski-01"}`))
+			r := httptest.NewRequest(http.MethodPost, "/api/ausleihen", strings.NewReader(bookingBody("demo-person-01", "demo-ski-01", 1)))
 			r.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 			app.ServeHTTP(w, r)

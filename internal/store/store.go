@@ -7,12 +7,15 @@ import (
 	"fmt"
 	"sort"
 	"sync"
+	"time"
 
 	"skirental/internal/domain"
 )
 
 type Store struct {
 	mu         sync.RWMutex
+	now        func() time.Time
+	tariff     domain.Tariff
 	nextPerson uint64
 	nextSki    uint64
 	nextRental uint64
@@ -32,6 +35,8 @@ type Snapshot struct {
 func New(demo bool) *Store {
 	s := &Store{
 		demo:    demo,
+		now:     time.Now,
+		tariff:  domain.Tariff{PricesCents: []int64{}},
 		people:  make(map[string]domain.Person),
 		skis:    make(map[string]domain.Ski),
 		rentals: make(map[string]domain.Rental),
@@ -54,6 +59,9 @@ func (s *Store) SeedDemo() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	if s.tariff.Version == 0 {
+		s.tariff = domain.Tariff{Version: 1, PricesCents: []int64{2500, 4500, 6000}, ExtraDayCents: 1500}
+	}
 	person := domain.Person{
 		ID: "demo-person-01", Name: "Demo Person",
 		DocumentType: "Sonstiger Ausweis", DocumentDescription: "Demoausweis",

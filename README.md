@@ -11,6 +11,10 @@ abgenommen. Das Dashboard zeigt echte Kennzahlen und aktualisiert sich automatis
 Phase 4 ist implementiert, geprüft und am 21.10.2026 ausdrücklich vom Auftraggeber
 abgenommen. Damit ist der vereinbarte MVP abgeschlossen. Gesamtprüfnachweis und Abnahmeliste stehen in
 [specs/04-mvp-abnahme.md](specs/04-mvp-abnahme.md).
+Phase 5 ist implementiert, technisch geprüft und am 21.10.2026 ausdrücklich
+vom Auftraggeber abgenommen: Terminbuchungen, ausdrückliche
+Ausgabe, Stornierung und dauerabhängige Preise mit Tarifverwaltung. Die
+Spezifikation, Prüfnachweis und Abnahme: [Phase 5](specs/05-termine-preise.md).
 
 ### Voraussetzungen und Start
 
@@ -59,9 +63,9 @@ Betriebssystem und die Prozessorarchitektur. `bin/` wird nicht versioniert.
 
 ### Startzustand und Grenzen
 
-- Normalmodus: leerer Store.
+- Normalmodus: leerer Store einschließlich noch nicht eingerichtetem Tarif.
 - Demomodus: zwei Ski-Paare und eine synthetische Person mit manuellem
-  Ausweisnachweis, ohne Ausleihen oder Ausweisfoto. Die Verwaltung listet die
+  Ausweisnachweis, ohne Ausleihen oder Ausweisfoto, mit Beispieltarif. Die Verwaltung listet die
   Demodaten auf; der Modus wird sichtbar angezeigt.
 - Alle Änderungen gehen beim Neustart verloren. Danach entsteht erneut der
   gewählte leere oder Demo-Startzustand.
@@ -89,7 +93,7 @@ go test ./internal/handler -run TestMVPAcceptanceWorkflow -v
 ```
 
 Er prüft Normal- und Demomodus jeweils mit manuellem Nachweis, PNG und JPEG,
-einschließlich Ausleihkonflikt, Rückgabe und erneuter Ausleihe. Für die manuelle
+einschließlich Tarifeinrichtung, Buchung, Ausgabe, Ausleihkonflikt, Rückgabe und erneuter Ausleihe. Für die manuelle
 Browserprüfung liegt ein ausschließlich synthetisches Foto unter
 [testdata/ausweis-demo.png](testdata/ausweis-demo.png). Herkunft und Nutzung:
 [testdata/README.md](testdata/README.md). Den vollständigen Vorführablauf mit
@@ -130,34 +134,58 @@ Feldnamen und Fehlercodes stehen in der Phase-1-Spezifikation. Foto-Inhalte werd
 weder auf Datenträger geschrieben noch protokolliert. Es gibt weiterhin keine
 Suche, Löschfunktion oder dauerhafte Speicherung.
 
-### Ausleihe und Rückgabe bedienen
+### Buchung, Ausgabe und Rückgabe bedienen (Phase 5)
 
-Unter **Neue Ausleihe** eine Person und ein verfügbares Ski-Paar auswählen und
-„Ausleihe speichern“ drücken. Aus dem Personendetail (auch unmittelbar nach einer
-Registrierung) führt **Ski ausleihen** zum Formular mit vorausgewählter Person.
-Eine Person darf mehrere unterschiedliche Paare ausleihen. IDs und Zeitpunkte
-vergibt der Server; dasselbe Paar kann nur einmal gleichzeitig verliehen sein.
+Im Normalmodus zuerst unter **Tarife verwalten** die gemeinsame Tarifstaffel
+hinterlegen. Gesamtpreise gelten für 1 bis N Kalendertage; danach werden
+Zusatztage zum letzten Gesamtpreis addiert. EUR-Beträge können mit Komma oder
+Punkt und höchstens zwei Nachkommastellen eingegeben werden. Der Demomodus lädt
+25/45/60 EUR für 1/2/3 Tage und 15 EUR je Zusatztag. Auch Tarife sind flüchtig.
+Tarifänderungen wirken ausschließlich auf neue Buchungen. Bei gleichzeitiger
+Bearbeitung muss der inzwischen geänderte Tarif neu geladen werden.
 
-Unter dem Formular stehen **Aktive Ausleihen** mit **Rückgabe erfassen** und
-**Abgeschlossene Ausleihen** mit Rückgabezeitpunkt. Rückgabe macht das Paar wieder
-verfügbar. Eine wiederholte Rückgabe verändert weder den Zeitpunkt noch eine
-spätere Ausleihe desselben Paars. Namen in der Übersicht entsprechen den aktuellen
-Stammdaten; die Zuordnung bleibt über IDs erhalten.
+Unter **Neue Ausleihe** eine Person, Beginn (heute oder später) und geplante
+Rückgabe wählen. Beide Kalendertage zählen: Montag bis Mittwoch sind drei Tage.
+Maßgeblich ist Europe/Vienna. **Verfügbarkeit und Preis prüfen** lädt die für den
+Zeitraum freien Paare und den Gesamtpreis. Ein Paar auswählen und **Zum angezeigten
+Preis buchen** drücken. Nach Datumsänderungen muss erneut geprüft werden. Ändert
+sich der Tarif vor dem Speichern, wird der neue Preis angezeigt und muss erneut
+bestätigt werden. Aus dem Personendetail und direkt nach Registrierung führt
+**Ski ausleihen** weiterhin zum Formular mit vorausgewählter Person.
 
-**Abbrechen** öffnet die Übersicht und verwirft die Auswahl. **Aktualisieren**
-lädt die Daten neu. Wenn ein anderer Mitarbeiter das ausgewählte Paar inzwischen
-verliehen hat, erscheint ein verständlicher Fehler und die Ski-Auswahl wird
-aktualisiert. Bei fehlenden Personen oder Paaren helfen Links zur Verwaltung.
-Die Verwaltungsoberfläche benötigt JavaScript. Auswahllisten und Ausleihübersicht
-werden über „Aktualisieren“ erneuert; nach Konflikten werden Auswahl und Übersicht
-neu geladen. Das Dashboard aktualisiert seine Kennzahlen automatisch auch nach
-Änderungen in anderen Tabs. Ausweisnachweise werden hier nicht angezeigt.
+Die Buchung reserviert das Paar, zählt aber noch nicht als tatsächliche Ausgabe.
+Unter **Gebuchte Ausleihen** erfasst **Ski ausgeben** die Übergabe innerhalb des
+gebuchten Zeitraums. **Rückgabe erfassen** beendet die tatsächliche Ausleihe.
+Geplantes Ende und Tageswechsel lösen keine automatische Ausgabe/Rückgabe aus.
+Wiederholte Aktionen verändern die ursprünglichen Zeitpunkte nicht. Eine Person
+kann weiterhin mehrere unterschiedliche Paare ausleihen.
+
+Offene Buchungen eines Paars dürfen sich nicht überschneiden; beide Randtage
+sind belegt. Folgebuchungen ab dem nächsten Tag sind auch möglich, solange das
+Paar noch ausgegeben ist. Eine verspätete Rückgabe sperrt deren Ausgabe bis zur
+tatsächlichen Rückgabe. Überfällige Ausleihen werden markiert. Nicht ausgegebene
+Buchungen nach dem Enddatum erscheinen als abgelaufen. Buchungen lassen sich vor
+der Ausgabe stornieren; Korrekturen erfolgen durch Stornierung und Neubuchung.
+Abgeschlossene und stornierte Vorgänge bleiben im Verlauf erhalten. Der vereinbarte
+Preis bleibt bei früher/später Rückgabe und späterer Ausgabe unverändert.
+
+**Abbrechen** öffnet die Übersicht und verwirft die Eingaben. **Aktualisieren**
+lädt aktuelle Vorgänge und setzt die Vorschau zurück. Bei Konflikten werden die
+verfügbaren Paare und der Preis erneut geprüft. Andere Tabs verwenden weiterhin
+**Aktualisieren**; das Dashboard aktualisiert sich automatisch. Ausweisnachweise
+werden in Buchungsübersichten nicht angezeigt. Die Oberfläche benötigt JavaScript.
+
+Es gibt keine Zahlungen, Rechnungen, Rabatte oder dauerhafte Speicherung.
+Schnittstellen, Regeln und Prüfnachweis: [Phase 5](specs/05-termine-preise.md).
 
 ### Dashboard und Bedienung
 
 Die Startseite zeigt verfügbare und ausgeliehene Ski-Paare, Gesamtbestand und
 registrierte Personen. Verfügbare plus ausgeliehene Paare ergeben den Gesamtbestand.
-Beendete Ausleihen erhöhen die Anzahl ausgeliehener Paare nicht.
+Nur tatsächlich ausgegebene, noch nicht zurückgegebene Paare zählen als
+ausgeliehen. Bloße Buchungen ändern die vier Kennzahlen nicht. Die Kennzahl
+„Verfügbare Ski“ bezeichnet aktuell nicht ausgegebene Paare; terminbezogene
+Verfügbarkeit steht im Buchungsformular.
 
 Der Server liefert die Zahlen bereits beim Öffnen. Mit JavaScript werden sie
 sofort, alle 5 Sekunden nach der letzten Abfrage und bei Rückkehr zum Tab/Fenster

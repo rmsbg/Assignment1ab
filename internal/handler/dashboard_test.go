@@ -78,10 +78,11 @@ func TestDashboardTracksHTTPWorkflow(t *testing.T) {
 	check(store.DashboardCounts{AvailableSkis: 2, TotalSkis: 2, RegisteredPeople: 2})
 	call(t, app, "POST", "/api/ski", "application/json", strings.NewReader(`{"name":"Dashboard Testpaar"}`), 201)
 	check(store.DashboardCounts{AvailableSkis: 3, TotalSkis: 3, RegisteredPeople: 2})
-	body := `{"personID":"demo-person-01","skiID":"demo-ski-01"}`
+	body := bookingBody("demo-person-01", "demo-ski-01", 1)
 	w := call(t, app, "POST", "/api/ausleihen", "application/json", strings.NewReader(body), 201)
 	var rental rentalResponse
 	_ = json.Unmarshal(w.Body.Bytes(), &rental)
+	issueHTTP(t, app, rental.ID)
 	check(store.DashboardCounts{AvailableSkis: 2, RentedSkis: 1, TotalSkis: 3, RegisteredPeople: 2})
 	call(t, app, "POST", "/api/ausleihen", "application/json", strings.NewReader(body), 409)
 	check(store.DashboardCounts{AvailableSkis: 2, RentedSkis: 1, TotalSkis: 3, RegisteredPeople: 2})

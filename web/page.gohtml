@@ -9,6 +9,7 @@
   <script src="/assets/verwaltung.js" defer></script>
   <script src="/assets/ausleihe.js" defer></script>
   <script src="/assets/dashboard.js" defer></script>
+  <script src="/assets/tarife.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#inhalt">Zum Inhalt</a>
@@ -41,8 +42,9 @@
       {{if .Dashboard}}
       <section id="dashboard" aria-labelledby="bestand-title">
         <div class="section-heading"><h2 id="bestand-title">Der Verleih im Überblick</h2><span>Bestand in Ski-Paaren</span></div>
+        <p class="calendar-hint">Die Kennzahlen zählen tatsächlich ausgegebene Paare. Buchungen sind nicht enthalten. Die Verfügbarkeit für einen Zeitraum wird unter „Neue Ausleihe“ geprüft.</p>
         <div class="metrics">
-          <article class="metric"><span class="metric-label"><span class="metric-dot available" aria-hidden="true"></span>Verfügbare Ski</span><strong data-metric="availableSkis">{{.Counts.AvailableSkis}}</strong><small>Paare verfügbar</small></article>
+          <article class="metric"><span class="metric-label"><span class="metric-dot available" aria-hidden="true"></span>Verfügbare Ski</span><strong data-metric="availableSkis">{{.Counts.AvailableSkis}}</strong><small>Paare aktuell nicht ausgegeben</small></article>
           <article class="metric"><span class="metric-label"><span class="metric-dot rented" aria-hidden="true"></span>Ausgeliehene Ski</span><strong data-metric="rentedSkis">{{.Counts.RentedSkis}}</strong><small>Paare aktiv ausgeliehen</small></article>
           <article class="metric"><span class="metric-label"><span class="metric-dot inventory" aria-hidden="true"></span>Gesamtbestand Ski</span><strong data-metric="totalSkis">{{.Counts.TotalSkis}}</strong><small>Paare im Inventar</small></article>
           <article class="metric"><span class="metric-label"><span class="metric-dot people" aria-hidden="true"></span>Registrierte Personen</span><strong data-metric="registeredPeople">{{.Counts.RegisteredPeople}}</strong><small>Personen registriert</small></article>
@@ -61,7 +63,8 @@
         <div class="shortcuts">
           <a class="shortcut" href="/ski"><span class="shortcut-icon" aria-hidden="true">01</span><h3>Ski verwalten <span aria-hidden="true">↗</span></h3><p>Alle Ski-Paare anlegen, anzeigen und bearbeiten.</p><small>Anlegen · Anzeigen · Bearbeiten</small></a>
           <a class="shortcut" href="/personen"><span class="shortcut-icon" aria-hidden="true">02</span><h3>Personen verwalten <span aria-hidden="true">↗</span></h3><p>Personen und ihre Ausweisnachweise verwalten.</p><small>Anlegen · Anzeigen · Bearbeiten</small></a>
-          <a class="shortcut" href="/ausleihe"><span class="shortcut-icon" aria-hidden="true">03</span><h3>Neue Ausleihe <span aria-hidden="true">↗</span></h3><p>Hier beginnt der Weg vom Ski-Paar auf die Piste.</p><small>Ausleihen · Rückgaben</small></a>
+          <a class="shortcut" href="/ausleihe"><span class="shortcut-icon" aria-hidden="true">03</span><h3>Neue Ausleihe <span aria-hidden="true">↗</span></h3><p>Hier beginnt der Weg vom Ski-Paar auf die Piste.</p><small>Buchen · Ausgeben · Zurücknehmen</small></a>
+          <a class="shortcut" href="/tarife"><span class="shortcut-icon" aria-hidden="true">04</span><h3>Tarife verwalten <span aria-hidden="true">↗</span></h3><p>Gemeinsame Tagespreise und Zusatztage festlegen.</p><small>EUR · Dauerabhängige Preise</small></a>
         </div>
       </section>
       {{else if or (eq .Current.Path "/ski") (eq .Current.Path "/personen")}}
@@ -69,6 +72,12 @@
         <p role="status" id="message" tabindex="-1"></p>
         <div id="content"><p>Daten werden geladen …</p></div>
         <noscript>Bitte JavaScript aktivieren, um die Verwaltung zu verwenden.</noscript>
+      </section>
+      {{else if eq .Current.Path "/tarife"}}
+      <section id="tarife" aria-label="Tarifverwaltung">
+        <p role="status" id="tariff-message" tabindex="-1"></p>
+        <div id="tariff-content"><p>Tarif wird geladen …</p></div>
+        <noscript>Bitte JavaScript aktivieren, um Tarife zu verwalten.</noscript>
       </section>
       {{else}}
       <section id="ausleihe" aria-label="Ausleihe und Rückgabe">

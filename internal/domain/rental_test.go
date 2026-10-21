@@ -16,8 +16,12 @@ func TestRentalReferencesAndActivity(t *testing.T) {
 		t.Fatal("references not trimmed")
 	}
 	r := Rental{}
+	if r.Active() {
+		t.Fatal("booking counted as issued")
+	}
+	r.RentedAt = time.Now()
 	if !r.Active() {
-		t.Fatal("new rental inactive")
+		t.Fatal("issued rental inactive")
 	}
 	r.ReturnedAt = time.Now()
 	if r.Active() {

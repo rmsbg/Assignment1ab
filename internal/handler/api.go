@@ -22,11 +22,15 @@ func apiError(w http.ResponseWriter, err error) {
 	var validation domain.ValidationErrors
 	var size *http.MaxBytesError
 	var missing store.MissingReference
+	var conflict store.Conflict
 	if errors.As(err, &validation) {
 		fields = validation
 	} else if errors.As(err, &missing) {
 		status = 404
 		fields = domain.ValidationErrors{missing.Field: missing.Error()}
+	} else if errors.As(err, &conflict) {
+		status = 409
+		fields = domain.ValidationErrors{conflict.Field: conflict.Message}
 	} else if errors.Is(err, store.ErrUnavailable) {
 		status = 409
 		fields = domain.ValidationErrors{"skiID": store.ErrUnavailable.Error()}

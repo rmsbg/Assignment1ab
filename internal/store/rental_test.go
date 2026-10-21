@@ -13,7 +13,7 @@ func TestRentalLifecycle(t *testing.T) {
 	s := New(true)
 	before := s.Snapshot()
 	for _, ids := range [][2]string{{"", ""}, {"missing", "demo-ski-01"}, {"demo-person-01", "missing"}} {
-		if _, err := s.CreateRental(ids[0], ids[1]); err == nil {
+		if _, err := createIssued(s, ids[0], ids[1]); err == nil {
 			t.Fatal("invalid rental accepted")
 		}
 		if !reflect.DeepEqual(before, s.Snapshot()) {
@@ -21,7 +21,7 @@ func TestRentalLifecycle(t *testing.T) {
 		}
 	}
 	start := time.Now().UTC()
-	first, err := s.CreateRental("demo-person-01", "demo-ski-01")
+	first, err := createIssued(s, "demo-person-01", "demo-ski-01")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,13 +33,13 @@ func TestRentalLifecycle(t *testing.T) {
 		t.Fatal("rented pair still available")
 	}
 	before = s.Snapshot()
-	if _, err := s.CreateRental("demo-person-01", "demo-ski-01"); !errors.Is(err, ErrUnavailable) {
+	if _, err := createIssued(s, "demo-person-01", "demo-ski-01"); !errors.Is(err, ErrUnavailable) {
 		t.Fatal("double rental accepted")
 	}
 	if !reflect.DeepEqual(before, s.Snapshot()) {
 		t.Fatal("conflict mutated state")
 	}
-	second, err := s.CreateRental("demo-person-01", "demo-ski-02")
+	second, err := createIssued(s, "demo-person-01", "demo-ski-02")
 	if err != nil || second.Rental.ID == r.ID || len(s.AvailableSkis()) != 0 {
 		t.Fatal("multiple rentals per person failed")
 	}
@@ -57,7 +57,7 @@ func TestRentalLifecycle(t *testing.T) {
 	if err != nil || !reflect.DeepEqual(returned, again) {
 		t.Fatal("repeated return changed timestamp")
 	}
-	replacement, err := s.CreateRental("demo-person-01", "demo-ski-01")
+	replacement, err := createIssued(s, "demo-person-01", "demo-ski-01")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +99,7 @@ func TestConcurrentRentalAndReturn(t *testing.T) {
 	failures := make(chan error, 32)
 	for range 32 {
 		wg.Go(func() {
-			r, err := s.CreateRental("demo-person-01", "demo-ski-01")
+			r, err := createIssued(s, "demo-person-01", "demo-ski-01")
 			if err != nil {
 				failures <- err
 			} else {
@@ -156,7 +156,7 @@ func TestConcurrentRentalAndReturn(t *testing.T) {
 				t.Error(err)
 				return
 			}
-			r, err := s.CreateRental("demo-person-01", ski.ID)
+			r, err := createIssued(s, "demo-person-01", ski.ID)
 			if err != nil {
 				t.Error(err)
 				return

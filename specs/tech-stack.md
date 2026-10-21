@@ -192,3 +192,25 @@ go fmt ./...             # Go-Code formatieren
 Für neue Funktionen müssen Akzeptanzkriterien und relevante Fehlerfälle geprüft
 sein. Eine feste Coverage-Quote ist nicht vorgesehen. UI-Abläufe werden im Browser
 überprüft; `golangci-lint` ist erst bei expliziter Einrichtung erforderlich.
+
+## Erweiterung Phase 5 – Buchungen und Tarife
+
+Die bisherigen Abschnitte beschreiben den abgenommenen MVP. Für Phase 5 werden
+Ausleihen um Buchungsdaten, Preis in ganzen Cent, Tarifversion, Erstellungs- und
+Stornierungszeitpunkt ergänzt. Ausgabe/Rückgabe bleiben serverseitige UTC-Ereignisse;
+eine Buchung ohne Ausgabe zählt nicht als ausgeliehen. Kalenderdaten verwenden
+YYYY-MM-DD und das Geschäftsdatum Europe/Vienna (eingebettete Go-Zeitzonendaten).
+Tagesdifferenzen werden im UTC-Kalender berechnet, unabhängig von Zeitumstellungen.
+
+Tarif-Lesezugriffe liefern Kopien. Tarifänderungen verwenden Versionsprüfung;
+Buchungen prüfen Tarifversion, Referenzen und Terminüberschneidungen atomar unter
+der Store-Sperre. Preise verwenden int64 mit Überlaufprüfung und sind auf den
+exakt durch JavaScript darstellbaren Ganzzahlbereich begrenzt. Frontend-Vorschauen
+werden vom Backend berechnet und nach Tarifkonflikten erneut bestätigt.
+
+Neue Tarifansicht und API sowie Ausgabe-/Stornierungsaktionen ergänzen die
+bestehende Architektur ohne Abhängigkeiten. Der neue Buchungs-Request benötigt
+beide Kalenderdaten und Tarifversion; bisherige Clients müssen angepasst werden.
+Da nur flüchtige Daten existieren, gibt es keine Datenmigration. Bestehende
+Prüfszenarien werden auf Buchung plus Ausgabe umgestellt.
+Verbindliche Schnittstellen und Fehlerfälle: [05-termine-preise.md](05-termine-preise.md).

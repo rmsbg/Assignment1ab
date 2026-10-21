@@ -21,11 +21,18 @@ type Ski struct {
 	Name string `json:"name"`
 }
 
-// Rental is active until ReturnedAt is set.
+// Rental separates the agreed calendar period from actual issue and return.
 type Rental struct {
-	ID         string
-	PersonID   string
-	SkiID      string
-	RentedAt   time.Time
-	ReturnedAt time.Time
+	ID              string
+	CreatedAt       time.Time
+	StartsOn        string
+	EndsOn          string
+	DurationDays    int
+	TotalPriceCents int64
+	TariffVersion   uint64
+	CancelledAt     time.Time
+	PersonID        string
+	SkiID           string
+	RentedAt        time.Time
+	ReturnedAt      time.Time
 }

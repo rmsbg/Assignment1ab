@@ -10,8 +10,11 @@ und am 21.10.2026 ausdrücklich vom Auftraggeber abgenommen. Phase 4 ist impleme
 und geprüft sowie am 21.10.2026 ausdrücklich vom Auftraggeber abgenommen. Details und
 Prüfnachweise stehen in [00-projektgeruest.md](00-projektgeruest.md),
 [01-verwaltung.md](01-verwaltung.md), [02-ausleihe.md](02-ausleihe.md) und
-[03-dashboard.md](03-dashboard.md) sowie [04-mvp-abnahme.md](04-mvp-abnahme.md). Diese Roadmap
-ordnet Arbeit nach Abhängigkeiten; sie enthält keine zugesagten Termine.
+[03-dashboard.md](03-dashboard.md) sowie [04-mvp-abnahme.md](04-mvp-abnahme.md).
+Phase 5 erweitert den MVP und ist implementiert, technisch geprüft und am
+21.10.2026 ausdrücklich vom Auftraggeber abgenommen; siehe
+[05-termine-preise.md](05-termine-preise.md). Diese Roadmap ordnet Arbeit nach
+Abhängigkeiten; sie enthält keine zugesagten Termine.
 
 Für jede Phase gilt: **Spezifizieren → Aufgaben ableiten → Implementieren →
 Prüfen → Abnehmen**. Vor dem Code entsteht eine Feature-Spezifikation unter
@@ -133,8 +136,25 @@ erprobt. Build, Tests und Race-Prüfung bestehen. Die README dokumentiert Setup,
 Start, Prüfkommandos und bekannte Grenzen. Offene Abweichungen werden ausdrücklich
 festgehalten; ein Akzeptanzkriterium gilt erst mit Prüfnachweis als erfüllt.
 
+## Phase 5 – Verleihtermine, Buchungen und Preise
+
+**Status:** Planung am 21.10.2026 abgeschlossen; Implementierung anschließend
+explizit beauftragt, technisch geprüft und am selben Tag ausdrücklich vom
+Auftraggeber abgenommen: „phase 5 ist hiermit abgenommen“.
+
+**Ergebnis:** Terminbezogene Buchung mit Preisvorschau, ausdrücklicher Ausgabe,
+Rückgabe und Stornierung sowie bearbeitbare gemeinsame Tarifstaffel.
+Spezifikation und Prüfnachweis: [05-termine-preise.md](05-termine-preise.md).
+
+**Abnahme:** Kalenderdauer, überschneidungsfreie parallele Buchungen, Ausgabe nur
+im Zeitraum und nach tatsächlicher Rückgabe vorheriger Ausleihen, unveränderliche
+Buchungspreise, Tarifkonflikte, konsistente Bestandszahlen und vollständiger
+Browserablauf in Normal-/Demomodus. Build, Tests, Race und Vet müssen bestehen.
+Die Auftraggeberabnahme ist separat im Phase-5-Prüfnachweis dokumentiert.
+Der abgenommene Stand wird mit dem lokalen Commit
+`Phase 5: Verleihtermine und Tarifverwaltung abschließen` gesichert.
+
 ## Spätere Erweiterungen
 
-Dauerhafte Speicherung, Benutzerkonten, Reservierungen, Preise und Zahlungen
-sowie ein Kundenportal benötigen eine eigene Priorisierung und Spezifikation.
+Dauerhafte Speicherung, Benutzerkonten, Zahlungen sowie ein Kundenportal benötigen eine eigene Priorisierung und Spezifikation.
 Sie werden erst nach einer bewussten Erweiterung der Mission eingeplant.

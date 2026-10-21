@@ -26,19 +26,19 @@ func TestDashboardLifecycle(t *testing.T) {
 	a, _ := s.SaveSki("", "A")
 	b, _ := s.SaveSki("", "B")
 	assertCounts(t, s, DashboardCounts{AvailableSkis: 2, TotalSkis: 2, RegisteredPeople: 1})
-	first, err := s.CreateRental(p.ID, a.ID)
+	first, err := createIssued(s, p.ID, a.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 	assertCounts(t, s, DashboardCounts{AvailableSkis: 1, RentedSkis: 1, TotalSkis: 2, RegisteredPeople: 1})
-	_, err = s.CreateRental(p.ID, b.ID)
+	_, err = createIssued(s, p.ID, b.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 	assertCounts(t, s, DashboardCounts{RentedSkis: 2, TotalSkis: 2, RegisteredPeople: 1})
 	before := s.Dashboard()
-	_, _ = s.CreateRental(p.ID, a.ID)
-	_, _ = s.CreateRental("missing", b.ID)
+	_, _ = createIssued(s, p.ID, a.ID)
+	_, _ = createIssued(s, "missing", b.ID)
 	_, _ = s.SavePerson("", domain.Person{}, false)
 	_, _ = s.SaveSki("", " ")
 	_, _ = s.ReturnRental("missing")
@@ -52,7 +52,7 @@ func TestDashboardLifecycle(t *testing.T) {
 	assertCounts(t, s, DashboardCounts{AvailableSkis: 1, RentedSkis: 1, TotalSkis: 2, RegisteredPeople: 1})
 	_, _ = s.ReturnRental(first.Rental.ID)
 	assertCounts(t, s, DashboardCounts{AvailableSkis: 1, RentedSkis: 1, TotalSkis: 2, RegisteredPeople: 1})
-	_, _ = s.CreateRental(p.ID, a.ID)
+	_, _ = createIssued(s, p.ID, a.ID)
 	_, _ = s.ReturnRental(first.Rental.ID)
 	assertCounts(t, s, DashboardCounts{RentedSkis: 2, TotalSkis: 2, RegisteredPeople: 1})
 	copy := s.Dashboard()
@@ -76,7 +76,7 @@ func TestConcurrentDashboard(t *testing.T) {
 				return
 			}
 			for range 30 {
-				r, err := s.CreateRental(p.ID, ski.ID)
+				r, err := createIssued(s, p.ID, ski.ID)
 				if err != nil {
 					t.Error(err)
 					return

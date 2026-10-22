@@ -259,3 +259,77 @@ func TestAtomicPriceSnapshotDuringEdits(t *testing.T) {
 		t.Fatal("lost bookings")
 	}
 }
+
+func TestImmediateIssueAtomicity(t *testing.T) {
+	for _, scenario := range []string{"today", "future", "stale tariff", "overlap", "overdue", "Vienna midnight"} {
+		t.Run(scenario, func(t *testing.T) {
+			s := datedStore()
+			start, end, version := "2026-10-21", "2026-10-21", uint64(1)
+			switch scenario {
+			case "future":
+				start, end = "2026-10-22", "2026-10-22"
+			case "stale tariff":
+				version = 0
+			case "overlap":
+				book(t, s, "demo-ski-01", start, end)
+			case "overdue":
+				r := book(t, s, "demo-ski-01", start, end)
+				if _, err := s.IssueRental(r.Rental.ID); err != nil {
+					t.Fatal(err)
+				}
+				s.now = func() time.Time { return time.Date(2026, 10, 22, 9, 0, 0, 0, time.UTC) }
+				start, end = "2026-10-22", "2026-10-22"
+			case "Vienna midnight":
+				s.now = func() time.Time { return time.Date(2026, 10, 21, 22, 30, 0, 0, time.UTC) }
+				start, end = "2026-10-22", "2026-10-22"
+			}
+			before, next := s.Snapshot(), s.nextRental
+			r, err := s.CreateAndIssueRental("demo-person-01", "demo-ski-01", start, end, version)
+			if scenario == "today" || scenario == "Vienna midnight" {
+				if err != nil {
+					t.Fatal(err)
+				}
+				if !r.Rental.Active() || !r.Rental.RentedAt.Equal(r.Rental.CreatedAt) || r.Rental.TotalPriceCents != 2500 {
+					t.Fatal("wrong immediate issue")
+				}
+				assertCounts(t, s, DashboardCounts{AvailableSkis: 1, RentedSkis: 1, TotalSkis: 2, RegisteredPeople: 1})
+			} else {
+				if err == nil {
+					t.Fatal("invalid immediate issue accepted")
+				}
+				if !reflect.DeepEqual(before, s.Snapshot()) || next != s.nextRental {
+					t.Fatal("failed operation changed state")
+				}
+				if scenario == "overdue" {
+					// A reservation remains possible even when the previous handover is overdue.
+					book(t, s, "demo-ski-01", start, end)
+				}
+			}
+		})
+	}
+}
+
+func TestConcurrentImmediateIssues(t *testing.T) {
+	s := datedStore()
+	var wg sync.WaitGroup
+	results := make(chan error, 32)
+	for range 32 {
+		wg.Go(func() {
+			_, err := s.CreateAndIssueRental("demo-person-01", "demo-ski-01", "2026-10-21", "2026-10-21", 1)
+			results <- err
+		})
+	}
+	wg.Wait()
+	close(results)
+	success := 0
+	for err := range results {
+		if err == nil {
+			success++
+		} else if !errors.Is(err, ErrUnavailable) {
+			t.Fatal(err)
+		}
+	}
+	if success != 1 || len(s.Rentals()) != 1 || s.Dashboard().RentedSkis != 1 {
+		t.Fatal("duplicate immediate issue")
+	}
+}

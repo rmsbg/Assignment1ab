@@ -56,6 +56,15 @@ func (s *Store) AvailableSkis() []domain.Ski {
 
 // CreateRental validates price, references and overlap in one atomic operation.
 func (s *Store) CreateRental(personID, skiID, start, end string, version uint64) (RentalDetails, error) {
+	return s.createRental(personID, skiID, start, end, version, false)
+}
+
+// CreateAndIssueRental books and records the handover together, or changes nothing.
+func (s *Store) CreateAndIssueRental(personID, skiID, start, end string, version uint64) (RentalDetails, error) {
+	return s.createRental(personID, skiID, start, end, version, true)
+}
+
+func (s *Store) createRental(personID, skiID, start, end string, version uint64, issueImmediately bool) (RentalDetails, error) {
 	personID, skiID, err := domain.ValidateRentalReferences(personID, skiID)
 	if err != nil {
 		return RentalDetails{}, err
@@ -78,10 +87,21 @@ func (s *Store) CreateRental(personID, skiID, start, end string, version uint64)
 	if !s.availablePeriodLocked(skiID, start, end) {
 		return RentalDetails{}, ErrUnavailable
 	}
+	if issueImmediately {
+		if start != domain.Today(s.now()) {
+			return RentalDetails{}, Conflict{"startsOn", "Buchen und ausgeben ist nur bei Verleihbeginn heute möglich."}
+		}
+		if err := s.checkHandoverLocked(skiID); err != nil {
+			return RentalDetails{}, err
+		}
+	}
 	s.nextRental++
 	r := domain.Rental{ID: fmt.Sprintf("ausleihe-%06d", s.nextRental), PersonID: personID, SkiID: skiID,
 		CreatedAt: s.now().UTC(), StartsOn: start, EndsOn: end, DurationDays: quote.DurationDays,
 		TotalPriceCents: quote.TotalPriceCents, TariffVersion: quote.TariffVersion}
+	if issueImmediately {
+		r.RentedAt = r.CreatedAt
+	}
 	s.rentals[r.ID] = r
 	return s.rentalDetailsLocked(r), nil
 }
@@ -118,15 +138,24 @@ func (s *Store) IssueRental(id string) (RentalDetails, error) {
 	if today < r.StartsOn || today > r.EndsOn {
 		return RentalDetails{}, Conflict{"form", "Die Ausgabe ist nur innerhalb des gebuchten Zeitraums möglich."}
 	}
-	for _, other := range s.rentals {
-		if other.SkiID == r.SkiID && other.Active() {
-			return RentalDetails{}, Conflict{"form", "Das Ski-Paar wurde aus einer vorherigen Ausleihe noch nicht zurückgegeben."}
-		}
+	if err := s.checkHandoverLocked(r.SkiID); err != nil {
+		return RentalDetails{}, err
 	}
 	r.RentedAt = s.now().UTC()
 	s.rentals[id] = r
 	return s.rentalDetailsLocked(r), nil
 }
+
+// checkHandoverLocked also catches overdue rentals outside the booked period.
+func (s *Store) checkHandoverLocked(skiID string) error {
+	for _, other := range s.rentals {
+		if other.SkiID == skiID && other.Active() {
+			return Conflict{"form", "Das Ski-Paar wurde aus einer vorherigen Ausleihe noch nicht zurückgegeben. Es wurde nichts gespeichert."}
+		}
+	}
+	return nil
+}
+
 func (s *Store) CancelRental(id string) (RentalDetails, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

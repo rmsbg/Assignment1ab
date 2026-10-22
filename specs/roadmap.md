@@ -13,7 +13,10 @@ Prüfnachweise stehen in [00-projektgeruest.md](00-projektgeruest.md),
 [03-dashboard.md](03-dashboard.md) sowie [04-mvp-abnahme.md](04-mvp-abnahme.md).
 Phase 5 erweitert den MVP und ist implementiert, technisch geprüft und am
 21.10.2026 ausdrücklich vom Auftraggeber abgenommen; siehe
-[05-termine-preise.md](05-termine-preise.md). Diese Roadmap ordnet Arbeit nach
+[05-termine-preise.md](05-termine-preise.md). Phase 6 ergänzt die sofortige Ausgabe
+bei der Buchung und ist implementiert, technisch geprüft und am 22.10.2026
+ausdrücklich abgenommen; siehe [06-buchen-und-ausgeben.md](06-buchen-und-ausgeben.md).
+Diese Roadmap ordnet Arbeit nach
 Abhängigkeiten; sie enthält keine zugesagten Termine.
 
 Für jede Phase gilt: **Spezifizieren → Aufgaben ableiten → Implementieren →
@@ -153,6 +156,21 @@ Browserablauf in Normal-/Demomodus. Build, Tests, Race und Vet müssen bestehen.
 Die Auftraggeberabnahme ist separat im Phase-5-Prüfnachweis dokumentiert.
 Der abgenommene Stand wird mit dem lokalen Commit
 `Phase 5: Verleihtermine und Tarifverwaltung abschließen` gesichert.
+
+## Phase 6 – Buchen und ausgeben
+
+**Status:** Implementiert, technisch geprüft und am 22.10.2026 ausdrücklich vom
+Auftraggeber abgenommen: „die änderung ist hiermit abgenommen“.
+
+**Ergebnis:** Bei Beginn heute stehen „Buchen und ausgeben“ und „Nur buchen“ zur
+Wahl; zukünftige Termine bieten „Buchen“. Sofortausgabe und Buchung werden atomar
+mit Preis-, Termin- und Ausgabekonfliktprüfung gespeichert.
+
+**Prüfnachweis:** Build, Go-Tests, Race-Tests und Vet bestanden; Browserprüfung auf
+Desktop und mobilem Bildschirm einschließlich Tastaturbedienung und Tarifkonflikt.
+Details, Screenshots und Abnahme: [06-buchen-und-ausgeben.md](06-buchen-und-ausgeben.md).
+Der abgenommene Stand wird mit dem lokalen Commit
+`Phase 6: Buchung mit sofortiger Ausgabe abschließen` gesichert.
 
 ## Spätere Erweiterungen
 

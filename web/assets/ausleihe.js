@@ -41,40 +41,51 @@
    const [people,rentals,tariff]=await Promise.all([request('/api/personen'),request('/api/ausleihen'),request('/api/tarife')]);
    if(own!==generation)return;
    const overview=location.hash==='#uebersicht';
-   content.innerHTML=`<div class="section-heading"><h2>${overview?'Buchungen, Ausgabe und Rückgabe':'Ausleihe buchen'}</h2><div class="actions compact"><button class="secondary" id="refresh-rentals">Aktualisieren</button>${overview?'<a class="button" href="#neu">Neue Ausleihe</a>':''}</div></div><p id="rental-error" class="field-error" role="alert" tabindex="-1"></p>${!overview?`<form id="rental-form" class="record-panel" novalidate><p>Beginn und geplante Rückgabe zählen beide als Verleihtag. Nach der Buchung die tatsächliche Ausgabe separat erfassen.</p>${!people.length?'<p>Noch keine Personen vorhanden. <a href="/personen#neu">Person anlegen</a></p>':''}${!tariff.version?'<p class="field-error">Noch kein Tarif eingerichtet. <a href="/tarife">Tarife verwalten</a></p>':''}${field('personID','Person (Pflichtfeld)',`<select id="personID" aria-describedby="rental-error-personID"><option value="">Bitte Person wählen</option>${options(people)}</select>`)}<div class="date-fields">${field('startsOn','Verleihbeginn (Pflichtfeld)',`<input type="date" id="startsOn" min="${today()}" value="${esc(saved.startsOn)}" aria-describedby="rental-error-startsOn">`)}${field('endsOn','Geplante Rückgabe (Pflichtfeld)',`<input type="date" id="endsOn" min="${today()}" value="${esc(saved.endsOn)}" aria-describedby="rental-error-endsOn">`)}</div><button type="button" class="secondary" id="check-period" ${!tariff.version?'disabled':''}>Verfügbarkeit und Preis prüfen</button><p id="price-preview" role="status">Bitte den Zeitraum prüfen.</p>${field('skiID','Verfügbares Ski-Paar im Zeitraum (Pflichtfeld)','<select id="skiID" disabled aria-describedby="rental-error-skiID"><option value="">Bitte zuerst Zeitraum prüfen</option></select>')}<p id="no-skis" hidden>Keine Paare im Zeitraum verfügbar. Einen anderen Zeitraum wählen, eine Rückgabe erfassen oder <a href="/ski#neu">ein Ski-Paar anlegen</a>.</p><div class="actions"><button type="submit" disabled>Zum angezeigten Preis buchen</button><a class="button secondary" href="#uebersicht">Abbrechen</a></div></form>`:''}${[['Gebuchte Ausleihen',['booked','expired']],['Ausgegebene Ausleihen',['issued']],['Abgeschlossene Ausleihen',['returned']],['Stornierte Buchungen',['cancelled']]].map(([title,statuses],i)=>`<section class="rental-section" aria-labelledby="rental-title-${i}"><h2 id="rental-title-${i}">${title}</h2>${rentalList(rentals.filter(r=>statuses.includes(r.status)))}</section>`).join('')}`;
+   content.innerHTML=`<div class="section-heading"><h2>${overview?'Buchungen, Ausgabe und Rückgabe':'Ausleihe buchen'}</h2><div class="actions compact"><button class="secondary" id="refresh-rentals">Aktualisieren</button>${overview?'<a class="button" href="#neu">Neue Ausleihe</a>':''}</div></div><p id="rental-error" class="field-error" role="alert" tabindex="-1"></p>${!overview?`<form id="rental-form" class="record-panel" novalidate><p>Beginn und geplante Rückgabe zählen beide als Verleihtag. Bei Beginn heute können Buchung und tatsächliche Ausgabe gemeinsam gespeichert werden. Mit den Buchungsbuttons bestätigen Sie den angezeigten Preis.</p>${!people.length?'<p>Noch keine Personen vorhanden. <a href="/personen#neu">Person anlegen</a></p>':''}${!tariff.version?'<p class="field-error">Noch kein Tarif eingerichtet. <a href="/tarife">Tarife verwalten</a></p>':''}${field('personID','Person (Pflichtfeld)',`<select id="personID" aria-describedby="rental-error-personID"><option value="">Bitte Person wählen</option>${options(people)}</select>`)}<div class="date-fields">${field('startsOn','Verleihbeginn (Pflichtfeld)',`<input type="date" id="startsOn" min="${today()}" value="${esc(saved.startsOn)}" aria-describedby="rental-error-startsOn">`)}${field('endsOn','Geplante Rückgabe (Pflichtfeld)',`<input type="date" id="endsOn" min="${today()}" value="${esc(saved.endsOn)}" aria-describedby="rental-error-endsOn">`)}</div><button type="button" class="secondary" id="check-period" ${!tariff.version?'disabled':''}>Verfügbarkeit und Preis prüfen</button><p id="price-preview" role="status">Bitte den Zeitraum prüfen.</p>${field('skiID','Verfügbares Ski-Paar im Zeitraum (Pflichtfeld)','<select id="skiID" disabled aria-describedby="rental-error-skiID"><option value="">Bitte zuerst Zeitraum prüfen</option></select>')}<p id="no-skis" hidden>Keine Paare im Zeitraum verfügbar. Einen anderen Zeitraum wählen, eine Rückgabe erfassen oder <a href="/ski#neu">ein Ski-Paar anlegen</a>.</p><div class="actions"><button type="submit" id="book-issue" disabled>Buchen und ausgeben</button><button type="submit" id="book-only" class="secondary" disabled>Nur buchen</button><a class="button secondary" href="#uebersicht">Abbrechen</a></div></form>`:''}${[['Gebuchte Ausleihen',['booked','expired']],['Ausgegebene Ausleihen',['issued']],['Abgeschlossene Ausleihen',['returned']],['Stornierte Buchungen',['cancelled']]].map(([title,statuses],i)=>`<section class="rental-section" aria-labelledby="rental-title-${i}"><h2 id="rental-title-${i}">${title}</h2>${rentalList(rentals.filter(r=>statuses.includes(r.status)))}</section>`).join('')}`;
    const form=content.querySelector('#rental-form');let quote=null,previewGeneration=0;
    const values=()=>form?{personID:document.querySelector('#personID').value,startsOn:document.querySelector('#startsOn').value,endsOn:document.querySelector('#endsOn').value}:saved;
    if(form){
-    const person=form.querySelector('#personID'),ski=form.querySelector('#skiID'),submit=form.querySelector('[type="submit"]'),check=form.querySelector('#check-period'),preview=form.querySelector('#price-preview');
+    const person=form.querySelector('#personID'),ski=form.querySelector('#skiID'),submit=form.querySelector('#book-only'),issue=form.querySelector('#book-issue'),check=form.querySelector('#check-period'),preview=form.querySelector('#price-preview');
     person.value=people.some(p=>p.id===saved.personID)?saved.personID:'';
     if(saved.personID&&!person.value)showErrors({errors:{personID:'Die vorausgewählte Person wurde nicht gefunden. Bitte eine vorhandene Person auswählen.'}});
-    function invalidate(){quote=null;previewGeneration++;ski.innerHTML='<option value="">Bitte zuerst Zeitraum prüfen</option>';ski.disabled=true;submit.disabled=true;check.disabled=!tariff.version;form.querySelector('#no-skis').hidden=true;preview.textContent='Zeitraum geändert. Bitte Verfügbarkeit und Preis erneut prüfen.';}
+    let saving=false;
+    function buttons(disabled){
+     const sameDay=form.querySelector('#startsOn').value===today();
+     issue.hidden=!sameDay;issue.disabled=disabled||saving||!sameDay;
+     submit.disabled=disabled||saving;submit.textContent=sameDay?'Nur buchen':'Buchen';
+     submit.classList.toggle('secondary',sameDay);
+    }
+    buttons(true);
+    function invalidate(){quote=null;previewGeneration++;ski.innerHTML='<option value="">Bitte zuerst Zeitraum prüfen</option>';ski.disabled=true;buttons(true);check.disabled=!tariff.version;form.querySelector('#no-skis').hidden=true;preview.textContent='Zeitraum geändert. Bitte Verfügbarkeit und Preis erneut prüfen.';}
     for(const id of ['startsOn','endsOn'])form.querySelector('#'+id).addEventListener('input',invalidate);
     async function loadPreview(){
-     const attempt=++previewGeneration;quote=null;submit.disabled=true;ski.disabled=true;check.disabled=true;preview.textContent='Verfügbarkeit und Preis werden geprüft …';
+     const attempt=++previewGeneration;quote=null;buttons(true);ski.disabled=true;check.disabled=true;preview.textContent='Verfügbarkeit und Preis werden geprüft …';
      const selected=values();
      try{
       const [price,pairs]=await Promise.all([post('/api/ausleihen/preis',{startsOn:selected.startsOn,endsOn:selected.endsOn}),request('/api/ski/verfuegbar?'+new URLSearchParams({startsOn:selected.startsOn,endsOn:selected.endsOn}))]);
       if(own!==generation||attempt!==previewGeneration)return;
       quote=price;form.querySelector('#no-skis').hidden=!!pairs.length;ski.innerHTML='<option value="">Bitte Ski-Paar wählen</option>'+options(pairs);ski.disabled=!pairs.length;
       preview.textContent=`${price.durationDays} ${price.durationDays===1?'Tag':'Tage'} · Gesamtpreis ${money(price.totalPriceCents)}${pairs.length?'':'. Keine Ski-Paare im Zeitraum verfügbar.'}`;
-      submit.disabled=!pairs.length||!people.length;
+      buttons(!pairs.length||!people.length);
      }catch(error){if(own!==generation||attempt!==previewGeneration)return;preview.textContent='Der Zeitraum konnte nicht geprüft werden.';showErrors(error);}
      finally{if(own===generation&&attempt===previewGeneration)check.disabled=false;}
     }
     check.addEventListener('click',loadPreview);
     form.addEventListener('submit',async event=>{
-     event.preventDefault();if(!quote)return;
-     const current=values();submit.disabled=true;
+     event.preventDefault();if(!quote||saving)return;
+     const issueImmediately=event.submitter===issue;
+     saving=true;
+     const current=values();buttons(true);
      try{
-      await post('/api/ausleihen',{...current,skiID:ski.value,tariffVersion:quote.tariffVersion});
-      if(own!==generation)return;notice('Buchung gespeichert. Die tatsächliche Ausgabe bitte separat erfassen.');await render(current);message.focus();
+      await post('/api/ausleihen',{...current,skiID:ski.value,tariffVersion:quote.tariffVersion,issueImmediately});
+      if(own!==generation)return;notice(issueImmediately?'Buchung und Ausgabe gespeichert.':'Buchung gespeichert. Die tatsächliche Ausgabe bitte separat erfassen.');await render(current);message.focus();
      }catch(error){
       if(own!==generation)return;
+      saving=false;
       if(error.status===409){await loadPreview();if(own!==generation)return;}
-      else submit.disabled=!quote;
+      else buttons(!quote);
       showErrors(error);
-     }
+     }finally{saving=false;}
     });
    }
    content.querySelector('#refresh-rentals').addEventListener('click',()=>{notice('');render(values()).then(headingFocus);});

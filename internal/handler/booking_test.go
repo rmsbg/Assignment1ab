@@ -123,3 +123,65 @@ func TestPhase5BookingHTTPFlow(t *testing.T) {
 	_ = json.Unmarshal(response.Body.Bytes(), &futureRental)
 	call(t, app, "PUT", "/api/ausleihen/"+futureRental.ID+"/ausgabe", "", nil, 409)
 }
+
+func TestImmediateIssueHTTP(t *testing.T) {
+	for _, mode := range []string{"true", "false", "omitted", "future", "stale", "invalid"} {
+		t.Run(mode, func(t *testing.T) {
+			s := store.New(true)
+			app, err := New(s)
+			if err != nil {
+				t.Fatal(err)
+			}
+			date := domain.Today(time.Now())
+			if mode == "future" {
+				date = domain.Today(time.Now().AddDate(0, 0, 1))
+			}
+			body := fmt.Sprintf(`{"personID":"demo-person-01","skiID":"demo-ski-01","startsOn":%q,"endsOn":%q,"tariffVersion":1`, date, date)
+			switch mode {
+			case "omitted":
+			case "invalid":
+				body += `,"issueImmediately":"true"`
+			case "false":
+				body += `,"issueImmediately":false`
+			default:
+				body += `,"issueImmediately":true`
+			}
+			body += "}"
+			expected := 201
+			if mode == "future" || mode == "stale" {
+				expected = 409
+			}
+			if mode == "invalid" {
+				expected = 400
+			}
+			if mode == "stale" {
+				body = strings.Replace(body, `"tariffVersion":1`, `"tariffVersion":0`, 1)
+			}
+			before := s.Snapshot()
+			response := call(t, app, "POST", "/api/ausleihen", "application/json", strings.NewReader(body), expected)
+			if expected != 201 {
+				if !reflect.DeepEqual(before, s.Snapshot()) {
+					t.Fatal("failed request changed state")
+				}
+				return
+			}
+			var r rentalResponse
+			if err := json.Unmarshal(response.Body.Bytes(), &r); err != nil {
+				t.Fatal(err)
+			}
+			if mode == "true" {
+				if r.Status != "issued" || r.RentedAt == nil || s.Dashboard().RentedSkis != 1 {
+					t.Fatal("immediate issue missing")
+				}
+				call(t, app, "GET", response.Header().Get("Location"), "", nil, 200)
+				// A second attempt must fail without creating a second booking.
+				call(t, app, "POST", "/api/ausleihen", "application/json", strings.NewReader(body), 409)
+				if len(s.Rentals()) != 1 {
+					t.Fatal("duplicate booking")
+				}
+			} else if r.Status != "booked" || r.RentedAt != nil || s.Dashboard().RentedSkis != 0 {
+				t.Fatal("reservation unexpectedly issued")
+			}
+		})
+	}
+}

@@ -15,6 +15,9 @@ Phase 5 ist implementiert, technisch geprüft und am 21.10.2026 ausdrücklich
 vom Auftraggeber abgenommen: Terminbuchungen, ausdrückliche
 Ausgabe, Stornierung und dauerabhängige Preise mit Tarifverwaltung. Die
 Spezifikation, Prüfnachweis und Abnahme: [Phase 5](specs/05-termine-preise.md).
+Phase 6 (Buchen und sofort ausgeben) ist implementiert, technisch geprüft und am
+22.10.2026 ausdrücklich vom Auftraggeber abgenommen:
+[Prüfnachweis und Abnahme](specs/06-buchen-und-ausgeben.md).
 
 ### Voraussetzungen und Start
 
@@ -147,14 +150,18 @@ Bearbeitung muss der inzwischen geänderte Tarif neu geladen werden.
 Unter **Neue Ausleihe** eine Person, Beginn (heute oder später) und geplante
 Rückgabe wählen. Beide Kalendertage zählen: Montag bis Mittwoch sind drei Tage.
 Maßgeblich ist Europe/Vienna. **Verfügbarkeit und Preis prüfen** lädt die für den
-Zeitraum freien Paare und den Gesamtpreis. Ein Paar auswählen und **Zum angezeigten
-Preis buchen** drücken. Nach Datumsänderungen muss erneut geprüft werden. Ändert
+Zeitraum freien Paare und den Gesamtpreis. Ein Paar auswählen. Bei Beginn heute **Buchen und ausgeben** für die sofortige
+Übergabe oder **Nur buchen** für eine Reservierung drücken. Bei zukünftigem Beginn
+steht **Buchen** zur Verfügung. Alle Buchungsbuttons bestätigen den angezeigten Preis. Nach Datumsänderungen muss erneut geprüft werden. Ändert
 sich der Tarif vor dem Speichern, wird der neue Preis angezeigt und muss erneut
 bestätigt werden. Aus dem Personendetail und direkt nach Registrierung führt
 **Ski ausleihen** weiterhin zum Formular mit vorausgewählter Person.
 
-Die Buchung reserviert das Paar, zählt aber noch nicht als tatsächliche Ausgabe.
-Unter **Gebuchte Ausleihen** erfasst **Ski ausgeben** die Übergabe innerhalb des
+Eine reine Buchung reserviert das Paar, zählt aber noch nicht als tatsächliche Ausgabe.
+**Buchen und ausgeben** speichert Buchung und Übergabe gemeinsam und zählt sofort
+als ausgeliehen. Bei Fehlern, etwa einem noch nicht zurückgegebenen Paar, wird
+keine Buchung gespeichert. Maßgeblich für „heute“ ist Europe/Vienna.
+Bei einer reinen Buchung erfasst unter **Gebuchte Ausleihen** **Ski ausgeben** die Übergabe innerhalb des
 gebuchten Zeitraums. **Rückgabe erfassen** beendet die tatsächliche Ausleihe.
 Geplantes Ende und Tageswechsel lösen keine automatische Ausgabe/Rückgabe aus.
 Wiederholte Aktionen verändern die ursprünglichen Zeitpunkte nicht. Eine Person

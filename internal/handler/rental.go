@@ -143,11 +143,12 @@ func registerRentals(mux *http.ServeMux, s *store.Store) {
 	})
 	mux.HandleFunc("POST /api/ausleihen", func(w http.ResponseWriter, r *http.Request) {
 		var input struct {
-			PersonID      string  `json:"personID"`
-			SkiID         string  `json:"skiID"`
-			StartsOn      string  `json:"startsOn"`
-			EndsOn        string  `json:"endsOn"`
-			TariffVersion *uint64 `json:"tariffVersion"`
+			PersonID         string  `json:"personID"`
+			SkiID            string  `json:"skiID"`
+			StartsOn         string  `json:"startsOn"`
+			EndsOn           string  `json:"endsOn"`
+			TariffVersion    *uint64 `json:"tariffVersion"`
+			IssueImmediately bool    `json:"issueImmediately"`
 		}
 		if !readJSON(w, r, &input) {
 			return
@@ -160,7 +161,11 @@ func registerRentals(mux *http.ServeMux, s *store.Store) {
 			apiError(w, domain.ValidationErrors{"tariffVersion": "Bitte zuerst den Preis prüfen und bestätigen."})
 			return
 		}
-		result, err := s.CreateRental(input.PersonID, input.SkiID, input.StartsOn, input.EndsOn, *input.TariffVersion)
+		create := s.CreateRental
+		if input.IssueImmediately {
+			create = s.CreateAndIssueRental
+		}
+		result, err := create(input.PersonID, input.SkiID, input.StartsOn, input.EndsOn, *input.TariffVersion)
 		if err != nil {
 			apiError(w, err)
 			return

@@ -40,7 +40,7 @@ JSON, no-store, bestehende Schutzheader und 64-KiB-Schreiblimit gelten weiter.
 | POST /api/ausleihen/preis | {startsOn, endsOn}; Antwort {durationDays, totalPriceCents, tariffVersion} |
 | GET /api/ski/verfuegbar?startsOn=…&endsOn=… | Terminbezogen verfügbare Paare; beide Parameter gemeinsam erforderlich |
 | GET /api/ski/verfuegbar | Tatsächlich nicht ausgegebene Paare |
-| POST /api/ausleihen | {personID, skiID, startsOn, endsOn, tariffVersion}; 201 mit Location |
+| POST /api/ausleihen | {personID, skiID, startsOn, endsOn, tariffVersion, issueImmediately?}; optionales Boolean, Standard false; 201 mit Location |
 | GET /api/ausleihen und /api/ausleihen/{id} | Bisherige Referenzen/Namen plus createdAt, startsOn, endsOn, durationDays, totalPriceCents, tariffVersion, status, overdue, nullable rentedAt/returnedAt/cancelledAt |
 | PUT /api/ausleihen/{id}/ausgabe, /rueckgabe, /stornierung | Leerer Body; aktualisierter Datensatz |
 
@@ -140,3 +140,5 @@ Abnahmeliste:
 - [ ] Tarifänderungen verlangen erneute Preisbestätigung und ändern keine bestehenden Preise.
 - [ ] Frühe/späte Rückgabe ändert den vereinbarten Preis nicht.
 - [ ] Normal-/Demostart, Mobilansicht und bekannte Grenzen sind nachvollziehbar dokumentiert.
+
+Erweiterung: [Buchen und ausgeben](06-buchen-und-ausgeben.md) beschreibt die optionale atomare Sofortausgabe bei Beginn heute.
